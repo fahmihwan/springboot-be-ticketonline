@@ -12,7 +12,7 @@ import java.util.List;
 
 @Entity
 @Table(name = "events")
-@ToString
+//@ToString
 @Getter
 @Setter
 public class Event extends BaseModel{

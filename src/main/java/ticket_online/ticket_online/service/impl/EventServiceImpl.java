@@ -1,18 +1,22 @@
 package ticket_online.ticket_online.service.impl;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.Parameter;
+import jakarta.persistence.Query;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ticket_online.ticket_online.dto.event.EventResDto;
 import ticket_online.ticket_online.model.Event;
-import ticket_online.ticket_online.model.User;
-import ticket_online.ticket_online.repository.CategoryTicketRepository;
 import ticket_online.ticket_online.repository.EventRepository;
 import ticket_online.ticket_online.service.CategoryTicketService;
 import ticket_online.ticket_online.service.EventService;
 
 import java.io.File;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @Slf4j
@@ -24,12 +28,34 @@ public class EventServiceImpl implements EventService {
     @Autowired
     CategoryTicketService categoryTicketService;
 
+    @Autowired
+    private EntityManager entityManager;
 
-    public List<Event> getAllEvent(){
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+
+
+    // ORM TABLE
+    public List<Event> getEventWithCategories(){
         return eventRepository.findAll();
-//        return eventRepository.selecAlltWithoutJoin();
-//        return  null;
     }
+
+    // Repository custome
+    public List<EventResDto> getAllEvent(){
+        return  null;
+    }
+
+    public List<Map<String, Object>> getAllEventUseJDBC(){
+        String sql = "SELECT ev.id, ev.event_title FROM events ev";
+        return jdbcTemplate.queryForList(sql);
+    }
+
+    public List<Map<String, Object>> getAllEventUseEM(){
+        String sql = "SELECT ev.id, ev.event_title FROM events ev";
+       Query query = entityManager.createNativeQuery(sql);
+        return query.getResultList();
+    }
+
 
     public Event getEventById(Long id){
         return eventRepository.findById(id).orElseThrow(() -> new RuntimeException("Event not found"));

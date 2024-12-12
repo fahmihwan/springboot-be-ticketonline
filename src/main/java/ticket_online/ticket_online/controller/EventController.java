@@ -1,14 +1,15 @@
 package ticket_online.ticket_online.controller;
 
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import ticket_online.ticket_online.dto.WebResponse;
+import ticket_online.ticket_online.dto.event.EventResDto;
 import ticket_online.ticket_online.model.Event;
-import ticket_online.ticket_online.model.User;
 import ticket_online.ticket_online.service.EventService;
+import ticket_online.ticket_online.service.QueryExampleService;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/event")
@@ -19,8 +20,8 @@ public class EventController {
     EventService eventService;
 
     @GetMapping
-    public WebResponse<List<Event>> getAllEvents(){
-        List<Event> response =  eventService.getAllEvent();
+    public WebResponse<List<Event>> getEventWithCategories(){
+        List<Event> response =  eventService.getEventWithCategories();
         return WebResponse.<List<Event>>builder().data(response).build();
     }
 

@@ -22,6 +22,8 @@ public class Event extends BaseModel{
     private String image;
     private LocalDateTime schedule;
     private String description;
+
+    @JsonIgnore
     private Long admin_id;
     private String venue;
 

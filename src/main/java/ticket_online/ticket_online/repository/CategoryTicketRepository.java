@@ -6,6 +6,9 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 import ticket_online.ticket_online.model.CategoryTicket;
+import ticket_online.ticket_online.model.Event;
+
+import java.util.List;
 
 @Repository
 public interface CategoryTicketRepository extends JpaRepository<CategoryTicket,Long> {
@@ -14,6 +17,7 @@ public interface CategoryTicketRepository extends JpaRepository<CategoryTicket,L
     @Modifying
     @Query("DELETE FROM CategoryTicket WHERE event_id = :event_id")
     public void destroyCategoryTicketByEventId(Long event_id);
+
 }
 
 

@@ -1,8 +1,7 @@
 package ticket_online.ticket_online.service;
 
-import ticket_online.ticket_online.dto.Response;
 import ticket_online.ticket_online.dto.WebResponse;
-import ticket_online.ticket_online.dto.event.EventResDto;
+import ticket_online.ticket_online.dto.event.EventDetailResDto;
 import ticket_online.ticket_online.model.Event;
 
 import java.util.List;
@@ -12,7 +11,9 @@ public interface EventService {
 
     public WebResponse<List<Map<String, Object>>> getEventWithMinPrice(Integer total);
 
-    public WebResponse<Event> getEventById(Long id);
+    public WebResponse<EventDetailResDto> getEventById(Long id);
+
+    public WebResponse<Event> getEventWithAllCategoryTickets(Long eventId);
 
     public WebResponse<Event> createEventAdmins(Event event);
 

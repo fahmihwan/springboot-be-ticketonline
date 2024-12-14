@@ -1,5 +1,6 @@
 package ticket_online.ticket_online.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -18,6 +19,7 @@ public class BaseModel {
     @Column(name = "id")
     private Long id;
 
+    @JsonIgnore
     private Boolean is_active;
 
     private LocalDateTime created_at;

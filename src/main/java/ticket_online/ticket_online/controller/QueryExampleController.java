@@ -1,6 +1,7 @@
 package ticket_online.ticket_online.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -32,9 +33,13 @@ public class QueryExampleController {
     }
 
     @GetMapping("/get-all-event-jdbc")
-    public WebResponse<List<Map<String, Object>>> getAllEventsJDBC(){
-        List<Map<String, Object>> response = queryExampleService.getAllEventUseJDBC();
-        return  WebResponse.<List<Map<String, Object>>>builder().data(response).build();
+    public ResponseEntity<WebResponse<List<Map<String, Object>>>> getAllEventsJDBC(){
+        WebResponse<List<Map<String, Object>>> response = queryExampleService.getAllEventUseJDBC();
+        if(response.getSuccess()){
+            return ResponseEntity.ok(response);
+        }else{
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        }
     }
 
     @GetMapping("/get-all-event-em")

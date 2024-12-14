@@ -5,6 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ticket_online.ticket_online.dto.WebResponse;
+import ticket_online.ticket_online.dto.event.EventDetailResDto;
 import ticket_online.ticket_online.model.Event;
 import ticket_online.ticket_online.service.EventService;
 
@@ -29,14 +30,25 @@ public class EventController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<WebResponse<Event>> getEventDetail(@PathVariable Long id){
-        WebResponse<Event> response = eventService.getEventById(id);
+    public ResponseEntity<WebResponse<EventDetailResDto>> getEventDetail(@PathVariable Long id){
+        WebResponse<EventDetailResDto> response = eventService.getEventById(id);
         if(response.getSuccess()){
             return ResponseEntity.ok(response);
         }else{
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
     }
+
+    @GetMapping("/{eventId}/with-category-tickets")
+    public ResponseEntity<WebResponse<Event>> getEventWithAllCategoryTickets(@PathVariable Long eventId){
+        WebResponse<Event> response = eventService.getEventWithAllCategoryTickets(eventId);
+        if(response.getSuccess()){
+            return ResponseEntity.ok(response);
+        }else{
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        }
+    }
+
 
     @PostMapping
     public ResponseEntity<WebResponse<Event>> createEventAdmin(@RequestBody Event event){

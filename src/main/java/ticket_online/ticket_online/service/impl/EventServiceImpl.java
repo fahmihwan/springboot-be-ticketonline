@@ -2,19 +2,20 @@ package ticket_online.ticket_online.service.impl;
 import jakarta.persistence.EntityManager;
 
 import lombok.extern.slf4j.Slf4j;
-import org.aspectj.weaver.AjAttribute;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ticket_online.ticket_online.dto.WebResponse;
+import ticket_online.ticket_online.dto.event.EventDetailResDto;
 import ticket_online.ticket_online.model.Event;
 import ticket_online.ticket_online.repository.EventRepository;
 import ticket_online.ticket_online.service.CategoryTicketService;
 import ticket_online.ticket_online.service.EventService;
-
+import ticket_online.ticket_online.util.ConvertUtil;
 import java.util.List;
 import java.util.Map;
+
 
 @Service
 @Slf4j
@@ -54,18 +55,39 @@ public class EventServiceImpl implements EventService {
 
 
     @Override
-    public WebResponse<Event> getEventById(Long id){
+    public WebResponse<EventDetailResDto> getEventById(Long id){
         try {
-            Event event = eventRepository.findById(id).orElseThrow(() -> new RuntimeException("Event not found"));
-//              Event event = eventRepository.findByIdWithJoin(id);
 
-//            Event event = eventRepository.findById(id);
-            if(event == null){
-                throw new RuntimeException("Event Not Found");
+            Object[] eventObj = (Object[]) eventRepository.findEventsWithMinPriceWhereEventId(id);
+            if(eventObj == null){
+                throw new RuntimeException("Event Detail Not Found");
             }
-            return new WebResponse<>(true, "Event retrieved", event);
+
+            EventDetailResDto eventDetailResDto = new EventDetailResDto();
+            eventDetailResDto.setId((Long) eventObj[0]);
+            eventDetailResDto.setEventTitle((String) eventObj[1]);
+            eventDetailResDto.setImage((String) eventObj[2]);
+            eventDetailResDto.setVenue((String) eventObj[3]);
+            eventDetailResDto.setDescription((String) eventObj[4]);
+            eventDetailResDto.setStartFromPrice((Integer) eventObj[5]);
+            eventDetailResDto.setSchedule(ConvertUtil.convertToLocalDateTime(eventObj[6]));
+            eventDetailResDto.setCreatedAt(ConvertUtil.convertToLocalDateTime(eventObj[7]));
+
+            return new WebResponse<>(true, "Event Detail retrieved", eventDetailResDto);
         }catch (RuntimeException e){
             return new WebResponse<>(false,e.getMessage(), null);
+        }
+    }
+
+
+    @Override
+    public WebResponse<Event> getEventWithAllCategoryTickets(Long eventId){
+        System.out.println(eventId);
+        try {
+            Event event = eventRepository.findById(eventId).orElseThrow(() -> new RuntimeException("Event not found"));
+            return new WebResponse<>(true, "Event detail with categories retrieved", event);
+        }catch (RuntimeException e){
+            return new WebResponse<>(false, e.getMessage(), null);
         }
     }
 
@@ -73,7 +95,7 @@ public class EventServiceImpl implements EventService {
     public WebResponse<Event> createEventAdmins(Event event){
         try {
             eventRepository.save(event);
-            return new WebResponse<>(true, "Event has Creaeted", event);
+            return new WebResponse<>(true, "Event has Created", event);
         }catch (RuntimeException e){
             return new WebResponse<>(false, e.getMessage(), null);
         }

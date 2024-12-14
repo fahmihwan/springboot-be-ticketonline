@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
+import ticket_online.ticket_online.dto.WebResponse;
 import ticket_online.ticket_online.dto.event.EventHomeResDto;
 import ticket_online.ticket_online.dto.event.EventResDto;
 import ticket_online.ticket_online.model.Event;
@@ -69,13 +70,13 @@ public class QueryExampleServiceImpl implements QueryExampleService {
     }
 
     //query raw pakai JDBC easy to use
-    public List<Map<String, Object>> getAllEventUseJDBC(){
+    public WebResponse<List<Map<String, Object>>> getAllEventUseJDBC(){
         String sql = "SELECT e.id,e.event_title, e.image, e.description, max(ct.price) as start_from, e.schedule\n" +
                 "\tFROM events e\n" +
                 "\tLEFT JOIN category_tickets ct on e.id = ct.event_id \n" +
                 "\tGROUP BY e.id, e.event_title, e.image, e.description, e.schedule";
-
-        return jdbcTemplate.queryForList(sql);
+        List<Map<String, Object>> data = jdbcTemplate.queryForList(sql);
+        return new WebResponse<>(true, "Event retrieved",data );
     }
 
     //pakai entityManeger (harus di looing ulang, atau di map, males, kalau nga propery nga bakal ikut seperti ini: [[2, "Webinar Teknologi 2024"]])
@@ -87,6 +88,7 @@ public class QueryExampleServiceImpl implements QueryExampleService {
         Query query = entityManager.createNativeQuery(sql);
         return query.getResultList();
     }
+
 
 
     public User findByUserId(Long id){
@@ -126,9 +128,10 @@ public class QueryExampleServiceImpl implements QueryExampleService {
             eventResDto.setId((Long) castArray[0]);
             eventResDto.setEventTitle((String) castArray[1]);
             eventResDto.setImage((String) castArray[2]);
-            eventResDto.setSchedule(ConvertUtil.convertToLocalDateTime(castArray[3]));
-            eventResDto.setDescription((String) castArray[4]);
-            eventResDto.setCreatedAt(ConvertUtil.convertToLocalDateTime(castArray[5]));
+            eventResDto.setVenue((String) castArray[3]);
+            eventResDto.setSchedule(ConvertUtil.convertToLocalDateTime(castArray[4]));
+            eventResDto.setDescription((String) castArray[5]);
+            eventResDto.setCreatedAt(ConvertUtil.convertToLocalDateTime(castArray[6]));
             return eventResDto;
 
         } catch (RuntimeException e) {

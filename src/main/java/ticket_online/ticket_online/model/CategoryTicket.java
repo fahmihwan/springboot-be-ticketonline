@@ -18,7 +18,9 @@ public class CategoryTicket extends BaseModel {
     private Long event_id;
     private String category_name;
     private Integer price;
-    private Integer total_ticket;
+
+    @Column(name = "quotaTicket")
+    private Integer quotaTicket;
     private String description;
 
 }

@@ -1,5 +1,6 @@
 package ticket_online.ticket_online.service;
 
+import ticket_online.ticket_online.dto.WebResponse;
 import ticket_online.ticket_online.dto.event.EventHomeResDto;
 import ticket_online.ticket_online.dto.event.EventResDto;
 import ticket_online.ticket_online.model.Event;
@@ -18,7 +19,7 @@ public interface QueryExampleService {
     public List<EventHomeResDto> getAllEventUseRepo();
 
     //query raw pakai JDBC easy to use
-    public List<Map<String, Object>> getAllEventUseJDBC();
+    public WebResponse<List<Map<String, Object>>> getAllEventUseJDBC();
 
     //pakai entityManeger (harus di looing ulang, atau di map, males.)
     public List<Map<String, Object>> getAllEventUseEM();

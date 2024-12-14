@@ -20,9 +20,6 @@ public class CategoryTicketServiceImpl implements CategoryTicketService {
     @Autowired
     private EventRepository eventRepository;
 
-    public List<CategoryTicket> getAllCategoryTicketByEventId(Long id){
-        return null;
-    }
 
     public CategoryTicket createCategoryTicket(CategoryTicket categoryTicket){
         return categoryTicketRepository.save(categoryTicket);

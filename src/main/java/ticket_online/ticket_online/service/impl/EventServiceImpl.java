@@ -1,20 +1,18 @@
 package ticket_online.ticket_online.service.impl;
-
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.Parameter;
-import jakarta.persistence.Query;
+
 import lombok.extern.slf4j.Slf4j;
+import org.aspectj.weaver.AjAttribute;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ticket_online.ticket_online.dto.event.EventResDto;
+import ticket_online.ticket_online.dto.WebResponse;
 import ticket_online.ticket_online.model.Event;
 import ticket_online.ticket_online.repository.EventRepository;
 import ticket_online.ticket_online.service.CategoryTicketService;
 import ticket_online.ticket_online.service.EventService;
 
-import java.io.File;
 import java.util.List;
 import java.util.Map;
 
@@ -35,55 +33,72 @@ public class EventServiceImpl implements EventService {
     private JdbcTemplate jdbcTemplate;
 
 
-    // ORM TABLE
-    public List<Event> getEventWithCategories(){
-        return eventRepository.findAll();
+
+    @Override
+    public WebResponse<List<Map<String, Object>>> getEventWithMinPrice(Integer total){
+        try {
+            if(total > 960){
+                throw new RuntimeException("Maximum fetch event");
+            }
+            String sql = "SELECT e.id,e.event_title, e.image, e.description, min(ct.price) as start_from, e.schedule\n" +
+                    "\tFROM events e\n" +
+                    "\tLEFT JOIN category_tickets ct on e.id = ct.event_id \n" +
+                    "\tGROUP BY e.id, e.event_title, e.image, e.description, e.schedule \n" +
+                    "LIMIT\t" + total;
+            return new WebResponse<>(true, "Event retrieved successfully", jdbcTemplate.queryForList(sql));
+        }catch (RuntimeException e){
+            return new WebResponse<>(false, e.getMessage(), null);
+
+        }
     }
 
-    // Repository custome
-    public List<EventResDto> getAllEvent(){
-        return  null;
+
+    @Override
+    public WebResponse<Event> getEventById(Long id){
+        try {
+            Event event = eventRepository.findById(id).orElseThrow(() -> new RuntimeException("Event not found"));
+//              Event event = eventRepository.findByIdWithJoin(id);
+
+//            Event event = eventRepository.findById(id);
+            if(event == null){
+                throw new RuntimeException("Event Not Found");
+            }
+            return new WebResponse<>(true, "Event retrieved", event);
+        }catch (RuntimeException e){
+            return new WebResponse<>(false,e.getMessage(), null);
+        }
     }
 
-    public List<Map<String, Object>> getAllEventUseJDBC(){
-        String sql = "SELECT ev.id, ev.event_title FROM events ev";
-        return jdbcTemplate.queryForList(sql);
+    @Override
+    public WebResponse<Event> createEventAdmins(Event event){
+        try {
+            eventRepository.save(event);
+            return new WebResponse<>(true, "Event has Creaeted", event);
+        }catch (RuntimeException e){
+            return new WebResponse<>(false, e.getMessage(), null);
+        }
     }
 
-    public List<Map<String, Object>> getAllEventUseEM(){
-        String sql = "SELECT ev.id, ev.event_title FROM events ev";
-       Query query = entityManager.createNativeQuery(sql);
-        return query.getResultList();
-    }
-
-
-    public Event getEventById(Long id){
-        return eventRepository.findById(id).orElseThrow(() -> new RuntimeException("Event not found"));
-    }
-
-    public Event createEventAdmins(Event event){
-
-        return eventRepository.save(event);
-    }
-
-    public Boolean removeEventAdmin(Long id){
+    @Override
+    public WebResponse<Boolean> removeEventAdmin(Long id){
         try {
             Event event = eventRepository.findById(id).orElseThrow(() -> new RuntimeException("Event not found"));
             //  cek lagi jika event sudah ada transaksi maka tidak boleh di hapus
             event.setIs_active(false);
             eventRepository.save(event);
-            return true;
+            return new WebResponse<>(true, "Event has been removed", null);
         }catch (RuntimeException e){
-            System.out.println("Error: " + e.getMessage());
-            return  false;
+            return new WebResponse<>(false, e.getMessage(), null);
         }
     }
 
+
     @Transactional
+    @Override
     public Boolean destroyEventAdminWithTickets(Long eventId){
         try {
             Event event = eventRepository.findById(eventId).orElseThrow(() -> new RuntimeException("Event not found"));
-            //            cek lagi jika event sudah ada transaksi maka tidak boleh di hapus
+             // cek lagi jika event sudah ada transaksi maka tidak boleh di hapus
             eventRepository.deleteById(eventId);
             categoryTicketService.destroyCategoryTicketByEventId(eventId);
             return  true;
@@ -91,7 +106,6 @@ public class EventServiceImpl implements EventService {
             System.out.println("Error: " + e.getMessage());
             return  false;
         }
-
     }
 
 

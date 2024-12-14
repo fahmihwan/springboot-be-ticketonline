@@ -2,27 +2,22 @@ package ticket_online.ticket_online.service.impl;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
-import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cglib.core.Local;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import ticket_online.ticket_online.dto.event.EventHomeResDto;
 import ticket_online.ticket_online.dto.event.EventResDto;
 import ticket_online.ticket_online.model.Event;
+import ticket_online.ticket_online.model.User;
 import ticket_online.ticket_online.repository.EventRepository;
+import ticket_online.ticket_online.repository.UserRepository;
 import ticket_online.ticket_online.service.QueryExampleService;
+import ticket_online.ticket_online.util.ConvertUtil;
 
 import java.sql.Timestamp;
-import java.time.Clock;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+
 
 @Service
 @Slf4j
@@ -30,6 +25,9 @@ public class QueryExampleServiceImpl implements QueryExampleService {
 
     @Autowired
     private EventRepository eventRepository;
+
+    @Autowired
+    private UserRepository userRepository;
 
     @Autowired
     private EntityManager entityManager;
@@ -88,6 +86,55 @@ public class QueryExampleServiceImpl implements QueryExampleService {
                 "GROUP BY e.id, e.event_title, e.image, e.description, e.schedule";
         Query query = entityManager.createNativeQuery(sql);
         return query.getResultList();
+    }
+
+
+    public User findByUserId(Long id){
+        System.out.println(id);
+        try {
+            return userRepository.findById(id).orElseThrow(() -> new RuntimeException("user not found"));
+        } catch (RuntimeException e) {
+            System.out.println("Error: " + e.getMessage());
+            return null;
+        }
+    }
+
+    public Event findByIdCustome(Long id){
+        try {
+            return eventRepository.findByIdCustome(id);
+        } catch (RuntimeException e) {
+            System.out.println("Error: " + e.getMessage());
+            return null;
+        }
+    }
+
+    public Event findByIdJPA(Long id){
+        try {
+            return eventRepository.findById(id).orElseThrow(() -> new RuntimeException("user not found"));
+        } catch (RuntimeException e) {
+            System.out.println("Error: " + e.getMessage());
+            return null;
+        }
+    }
+
+    public EventResDto findByIdJpaModelObject(Long id){
+
+        try {
+            final Object[] castArray = (Object[]) eventRepository.findByIdCustomeObject(id);
+
+            EventResDto eventResDto = new EventResDto();
+            eventResDto.setId((Long) castArray[0]);
+            eventResDto.setEventTitle((String) castArray[1]);
+            eventResDto.setImage((String) castArray[2]);
+            eventResDto.setSchedule(ConvertUtil.convertToLocalDateTime(castArray[3]));
+            eventResDto.setDescription((String) castArray[4]);
+            eventResDto.setCreatedAt(ConvertUtil.convertToLocalDateTime(castArray[5]));
+            return eventResDto;
+
+        } catch (RuntimeException e) {
+            System.out.println("Error: " + e.getMessage());
+            return null;
+        }
     }
 
 }

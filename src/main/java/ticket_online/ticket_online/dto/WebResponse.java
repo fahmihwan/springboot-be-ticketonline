@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 @Builder
 public class WebResponse<T> {
 
+    private Boolean success;
+    private String messages;
     private T data;
-    private String errors;
 }

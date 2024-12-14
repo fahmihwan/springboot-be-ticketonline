@@ -1,5 +1,7 @@
 package ticket_online.ticket_online.service;
 
+import ticket_online.ticket_online.dto.Response;
+import ticket_online.ticket_online.dto.WebResponse;
 import ticket_online.ticket_online.dto.event.EventResDto;
 import ticket_online.ticket_online.model.Event;
 
@@ -8,19 +10,13 @@ import java.util.Map;
 
 public interface EventService {
 
-    public List<Event> getEventWithCategories();
+    public WebResponse<List<Map<String, Object>>> getEventWithMinPrice(Integer total);
 
-    public List<EventResDto> getAllEvent();
+    public WebResponse<Event> getEventById(Long id);
 
-    public List<Map<String, Object>> getAllEventUseJDBC();
+    public WebResponse<Event> createEventAdmins(Event event);
 
-    public List<Map<String, Object>> getAllEventUseEM();
-
-    public Event getEventById(Long id);
-
-    public Event createEventAdmins(Event event);
-
-    public Boolean removeEventAdmin(Long id);
+    public WebResponse<Boolean> removeEventAdmin(Long id);
 
     public Boolean destroyEventAdminWithTickets(Long eventId);
 }

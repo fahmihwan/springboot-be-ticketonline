@@ -3,9 +3,11 @@ package ticket_online.ticket_online.service;
 import ticket_online.ticket_online.dto.event.EventHomeResDto;
 import ticket_online.ticket_online.dto.event.EventResDto;
 import ticket_online.ticket_online.model.Event;
+import ticket_online.ticket_online.model.User;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public interface QueryExampleService {
 
@@ -21,4 +23,11 @@ public interface QueryExampleService {
     //pakai entityManeger (harus di looing ulang, atau di map, males.)
     public List<Map<String, Object>> getAllEventUseEM();
 
+    public User findByUserId(Long id);
+
+    public Event findByIdCustome(Long id);
+
+    public Event findByIdJPA(Long id);
+
+    public EventResDto findByIdJpaModelObject(Long id);
 }

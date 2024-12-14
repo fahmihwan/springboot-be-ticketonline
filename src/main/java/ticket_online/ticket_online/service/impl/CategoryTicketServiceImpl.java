@@ -17,10 +17,8 @@ public class CategoryTicketServiceImpl implements CategoryTicketService {
     @Autowired
     private CategoryTicketRepository categoryTicketRepository;
 
-
     @Autowired
     private EventRepository eventRepository;
-
 
     public List<CategoryTicket> getAllCategoryTicketByEventId(Long id){
         return null;

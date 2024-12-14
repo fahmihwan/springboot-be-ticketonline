@@ -1,12 +1,12 @@
 package ticket_online.ticket_online.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ticket_online.ticket_online.dto.WebResponse;
-import ticket_online.ticket_online.dto.event.EventResDto;
 import ticket_online.ticket_online.model.Event;
 import ticket_online.ticket_online.service.EventService;
-import ticket_online.ticket_online.service.QueryExampleService;
 
 import java.util.List;
 import java.util.Map;
@@ -15,26 +15,47 @@ import java.util.Map;
 @RequestMapping("/api/event")
 public class EventController {
 
-
     @Autowired
     EventService eventService;
 
-    @GetMapping
-    public WebResponse<List<Event>> getEventWithCategories(){
-        List<Event> response =  eventService.getEventWithCategories();
-        return WebResponse.<List<Event>>builder().data(response).build();
+    @GetMapping("/{total}/fetch")
+    public ResponseEntity<WebResponse<List<Map<String, Object>>>> getEventHome(@PathVariable Integer total){
+         WebResponse<List<Map<String, Object>>> response =  eventService.getEventWithMinPrice(total);
+        if (response.getSuccess()) {
+            return ResponseEntity.ok(response);
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        }
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<WebResponse<Event>> getEventDetail(@PathVariable Long id){
+        WebResponse<Event> response = eventService.getEventById(id);
+        if(response.getSuccess()){
+            return ResponseEntity.ok(response);
+        }else{
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        }
     }
 
     @PostMapping
-    public  WebResponse<Event> createEventAdmin(@RequestBody Event event){
-        Event response = eventService.createEventAdmins(event);
-        return WebResponse.<Event>builder().data(response).build();
+    public ResponseEntity<WebResponse<Event>> createEventAdmin(@RequestBody Event event){
+        WebResponse<Event> response = eventService.createEventAdmins(event);
+          if(response.getSuccess()){
+              return ResponseEntity.status(HttpStatus.CREATED).body(response);
+          }else{
+              return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+          }
     }
 
     @DeleteMapping("/remove/{id}")
-    public WebResponse<Boolean> removeEventAdmin(@PathVariable Long id){
-       Boolean response =  eventService.removeEventAdmin(id);
-        return WebResponse.<Boolean>builder().data(response).build();
+    public ResponseEntity<WebResponse<Boolean>> removeEventAdmin(@PathVariable Long id){
+        WebResponse<Boolean> response = eventService.removeEventAdmin(id);
+        if(response.getSuccess()){
+            return ResponseEntity.noContent().build();
+        }else{
+            return ResponseEntity.status(HttpStatus. NOT_FOUND).body(response);
+        }
     }
 
     @DeleteMapping("/destroy/{id}")

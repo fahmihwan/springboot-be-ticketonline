@@ -6,7 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
-import ticket_online.ticket_online.dto.WebResponse;
+import ticket_online.ticket_online.dto.ApiResponse;
 import ticket_online.ticket_online.dto.event.EventHomeResDto;
 import ticket_online.ticket_online.dto.event.EventResDto;
 import ticket_online.ticket_online.model.Event;
@@ -62,7 +62,7 @@ public class QueryExampleServiceImpl implements QueryExampleService {
               eventHomeResDto.setImage(image);
               eventHomeResDto.setDescription(description);
               eventHomeResDto.setStart_from(startFrom);
-              eventHomeResDto.setSchedule(schedule);
+              eventHomeResDto.setSchedule(schedule.toLocalDateTime());
               homeResDtos.add(eventHomeResDto);
 
         }
@@ -70,13 +70,13 @@ public class QueryExampleServiceImpl implements QueryExampleService {
     }
 
     //query raw pakai JDBC easy to use
-    public WebResponse<List<Map<String, Object>>> getAllEventUseJDBC(){
+    public ApiResponse<List<Map<String, Object>>> getAllEventUseJDBC(){
         String sql = "SELECT e.id,e.event_title, e.image, e.description, max(ct.price) as start_from, e.schedule\n" +
                 "\tFROM events e\n" +
                 "\tLEFT JOIN category_tickets ct on e.id = ct.event_id \n" +
                 "\tGROUP BY e.id, e.event_title, e.image, e.description, e.schedule";
         List<Map<String, Object>> data = jdbcTemplate.queryForList(sql);
-        return new WebResponse<>(true, "Event retrieved",data );
+        return new ApiResponse<>(true, "Event retrieved",data );
     }
 
     //pakai entityManeger (harus di looing ulang, atau di map, males, kalau nga propery nga bakal ikut seperti ini: [[2, "Webinar Teknologi 2024"]])

@@ -14,8 +14,9 @@ public class EventHomeResDto {
     private Long id;
     private String event_title;
     private String image;
-    private Timestamp schedule;
+    private LocalDateTime schedule;
     private String description;
     private Integer start_from;
+    private String venue;
 }
 

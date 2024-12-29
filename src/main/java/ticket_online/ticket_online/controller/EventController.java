@@ -4,8 +4,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import ticket_online.ticket_online.dto.WebResponse;
+import ticket_online.ticket_online.dto.ApiResponse;
 import ticket_online.ticket_online.dto.event.EventDetailResDto;
+import ticket_online.ticket_online.dto.event.EventHomeResDto;
 import ticket_online.ticket_online.model.Event;
 import ticket_online.ticket_online.service.EventService;
 
@@ -19,9 +20,9 @@ public class EventController {
     @Autowired
     EventService eventService;
 
-    @GetMapping("/{total}/fetch")
-    public ResponseEntity<WebResponse<List<Map<String, Object>>>> getEventHome(@PathVariable Integer total){
-         WebResponse<List<Map<String, Object>>> response =  eventService.getEventWithMinPrice(total);
+    @GetMapping("/{total}/events")
+    public ResponseEntity<ApiResponse<List<EventHomeResDto>>> getEventHome(@PathVariable Integer total){
+         ApiResponse<List<EventHomeResDto>> response =  eventService.getEventWithMinPrice(total);
         if (response.getSuccess()) {
             return ResponseEntity.ok(response);
         } else {
@@ -30,8 +31,8 @@ public class EventController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<WebResponse<EventDetailResDto>> getEventDetail(@PathVariable Long id){
-        WebResponse<EventDetailResDto> response = eventService.getEventById(id);
+    public ResponseEntity<ApiResponse<EventDetailResDto>> getEventDetail(@PathVariable Long id){
+        ApiResponse<EventDetailResDto> response = eventService.getEventById(id);
         if(response.getSuccess()){
             return ResponseEntity.ok(response);
         }else{
@@ -40,8 +41,8 @@ public class EventController {
     }
 
     @GetMapping("/{eventId}/with-category-tickets")
-    public ResponseEntity<WebResponse<Event>> getEventWithAllCategoryTickets(@PathVariable Long eventId){
-        WebResponse<Event> response = eventService.getEventWithAllCategoryTickets(eventId);
+    public ResponseEntity<ApiResponse<Event>> getEventWithAllCategoryTickets(@PathVariable Long eventId){
+        ApiResponse<Event> response = eventService.getEventWithAllCategoryTickets(eventId);
         if(response.getSuccess()){
             return ResponseEntity.ok(response);
         }else{
@@ -51,8 +52,8 @@ public class EventController {
 
 
     @PostMapping
-    public ResponseEntity<WebResponse<Event>> createEventAdmin(@RequestBody Event event){
-        WebResponse<Event> response = eventService.createEventAdmins(event);
+    public ResponseEntity<ApiResponse<Event>> createEventAdmin(@RequestBody Event event){
+        ApiResponse<Event> response = eventService.createEventAdmins(event);
           if(response.getSuccess()){
               return ResponseEntity.status(HttpStatus.CREATED).body(response);
           }else{
@@ -61,8 +62,8 @@ public class EventController {
     }
 
     @DeleteMapping("/remove/{id}")
-    public ResponseEntity<WebResponse<Boolean>> removeEventAdmin(@PathVariable Long id){
-        WebResponse<Boolean> response = eventService.removeEventAdmin(id);
+    public ResponseEntity<ApiResponse<Boolean>> removeEventAdmin(@PathVariable Long id){
+        ApiResponse<Boolean> response = eventService.removeEventAdmin(id);
         if(response.getSuccess()){
             return ResponseEntity.noContent().build();
         }else{
@@ -71,9 +72,9 @@ public class EventController {
     }
 
     @DeleteMapping("/destroy/{id}")
-    public WebResponse<Boolean> destroyEventAdminWithTickets(@PathVariable Long id){
+    public ApiResponse<Boolean> destroyEventAdminWithTickets(@PathVariable Long id){
         Boolean response =  eventService.destroyEventAdminWithTickets(id);
-        return WebResponse.<Boolean>builder().data(response).build();
+        return ApiResponse.<Boolean>builder().data(response).build();
     }
 
 }

@@ -1,11 +1,9 @@
 package ticket_online.ticket_online.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import ticket_online.ticket_online.dto.WebResponse;
+import ticket_online.ticket_online.dto.ApiResponse;
 import ticket_online.ticket_online.model.CategoryTicket;
-import ticket_online.ticket_online.model.Event;
 import ticket_online.ticket_online.service.CategoryTicketService;
 
 @RestController
@@ -16,12 +14,12 @@ public class CategoryTicketController {
     CategoryTicketService categoryTicketService;
 //
 //    @GetMapping("/{eventId}")
-////    public ResponseEntity<WebResponse<>>
+////    public ResponseEntity<ApiResponse<>>
 
     @PostMapping
-    public WebResponse<CategoryTicket> createCategoryAdmin(@RequestBody CategoryTicket categoryTicket){
+    public ApiResponse<CategoryTicket> createCategoryAdmin(@RequestBody CategoryTicket categoryTicket){
         CategoryTicket response = categoryTicketService.createCategoryTicket(categoryTicket);
-        return WebResponse.<CategoryTicket>builder().data(response).build();
+        return ApiResponse.<CategoryTicket>builder().data(response).build();
     }
 
 }

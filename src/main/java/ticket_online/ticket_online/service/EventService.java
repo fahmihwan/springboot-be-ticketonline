@@ -1,5 +1,6 @@
 package ticket_online.ticket_online.service;
 
+import org.springframework.web.multipart.MultipartFile;
 import ticket_online.ticket_online.dto.ApiResponse;
 import ticket_online.ticket_online.dto.event.EventDetailResDto;
 import ticket_online.ticket_online.dto.event.EventHomeResDto;
@@ -16,7 +17,7 @@ public interface EventService {
 
     public ApiResponse<Event> getEventWithAllCategoryTickets(Long eventId);
 
-    public ApiResponse<Event> createEventAdmins(Event event);
+    public ApiResponse<Event> createEventAdmins(Event event, MultipartFile image);
 
     public ApiResponse<Boolean> removeEventAdmin(Long id);
 

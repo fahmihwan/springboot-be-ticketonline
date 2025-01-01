@@ -13,6 +13,7 @@ import ticket_online.ticket_online.dto.event.EventResDto;
 import ticket_online.ticket_online.model.Event;
 import ticket_online.ticket_online.model.User;
 import ticket_online.ticket_online.service.QueryExampleService;
+import ticket_online.ticket_online.service.impl.QueryExampleServiceImpl;
 
 import java.util.List;
 import java.util.Map;
@@ -23,6 +24,14 @@ public class QueryExampleController {
 
     @Autowired
     private QueryExampleService queryExampleService;
+
+    @Autowired
+    private QueryExampleServiceImpl queryExampleServiceImpl;
+
+    @GetMapping("/api-jsonplaceholder")
+    public ResponseEntity<String> getApiJsonPlaceHolder(){
+        return  ResponseEntity.ok(queryExampleServiceImpl.getApiJSONPlaceHolder());
+    }
 
     @GetMapping("/get-all-event-repo")
     public ApiResponse<List<EventHomeResDto>> getAllEvents(){

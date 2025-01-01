@@ -5,6 +5,7 @@ import ticket_online.ticket_online.model.Transaction;
 
 public interface TransactionService {
 
+
     public Transaction checkoutTicket(CheckoutReqDto checkoutReqDto);
 
 }

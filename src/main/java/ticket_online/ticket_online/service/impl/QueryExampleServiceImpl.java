@@ -6,6 +6,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.RestTemplate;
 import ticket_online.ticket_online.dto.ApiResponse;
 import ticket_online.ticket_online.dto.event.EventHomeResDto;
 import ticket_online.ticket_online.dto.event.EventResDto;
@@ -35,6 +37,24 @@ public class QueryExampleServiceImpl implements QueryExampleService {
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
+
+
+
+    // Get Data from External API (https://jsonplaceholder.typicode.com/)
+//    getAPI
+    public String getApiJSONPlaceHolder() {
+        try {
+            RestTemplate restTemplate = new RestTemplate();
+            String url = "https://jsonplaceholder.typicode.com/postsxxxx";
+            String response = restTemplate.getForObject(url, String.class);
+            return response;
+        } catch (HttpClientErrorException e) {
+            // Handle error
+            return "Error fetching data: " + e.getMessage();
+        }
+    }
+
+
 
     //pakai ORM
     public List<Event> getEventWithCategories(){

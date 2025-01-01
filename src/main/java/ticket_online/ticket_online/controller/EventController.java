@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import ticket_online.ticket_online.dto.ApiResponse;
 import ticket_online.ticket_online.dto.event.EventDetailResDto;
 import ticket_online.ticket_online.dto.event.EventHomeResDto;
@@ -52,8 +53,10 @@ public class EventController {
 
 
     @PostMapping
-    public ResponseEntity<ApiResponse<Event>> createEventAdmin(@RequestBody Event event){
-        ApiResponse<Event> response = eventService.createEventAdmins(event);
+//    public ResponseEntity<ApiResponse<Event>> createEventAdmin(@RequestBody Event event){
+    public ResponseEntity<ApiResponse<Event>> createEventAdmin(@RequestBody Event event, @RequestParam("image") MultipartFile image){
+        System.out.println(event);
+        ApiResponse<Event> response = eventService.createEventAdmins(event, image);
           if(response.getSuccess()){
               return ResponseEntity.status(HttpStatus.CREATED).body(response);
           }else{

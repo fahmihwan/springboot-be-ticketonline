@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 import ticket_online.ticket_online.dto.ApiResponse;
 import ticket_online.ticket_online.dto.event.EventDetailResDto;
 import ticket_online.ticket_online.dto.event.EventHomeResDto;
@@ -15,6 +16,11 @@ import ticket_online.ticket_online.service.CategoryTicketService;
 import ticket_online.ticket_online.service.EventService;
 import ticket_online.ticket_online.util.ConvertUtil;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -33,6 +39,17 @@ public class EventServiceImpl implements EventService {
     @Autowired
     private EntityManager entityManager;
 
+    // Folder untuk menyimpan gambar
+    private static String UPLOAD_DIR = "uploaded-images/";
+
+
+
+    static {
+        File directory = new File(UPLOAD_DIR);
+        if (!directory.exists()) {
+            directory.mkdirs(); // Buat folder jika belum ada
+        }
+    }
 
     @Override
     public ApiResponse<List<EventHomeResDto>> getEventWithMinPrice(Integer total){
@@ -64,7 +81,6 @@ public class EventServiceImpl implements EventService {
                     eventHomeResDto.setVenue((String) row[6]);
                     eventHomeResDtoList.add(eventHomeResDto);
             }
-
 
             return new ApiResponse<>(true, "Event retrieved successfully", eventHomeResDtoList);
         }catch (RuntimeException e){
@@ -112,11 +128,18 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
-    public ApiResponse<Event> createEventAdmins(Event event){
+    public ApiResponse<Event> createEventAdmins(Event event, MultipartFile image){
         try {
+
+            String fileName = image.getOriginalFilename();
+            Path path = Paths.get(UPLOAD_DIR + fileName);
+            Files.copy(image.getInputStream(), path);
+
+            event.setImage(fileName);
+
             eventRepository.save(event);
             return new ApiResponse<>(true, "Event has Created", event);
-        }catch (RuntimeException e){
+        }catch (RuntimeException | IOException e){
             return new ApiResponse<>(false, e.getMessage(), null);
         }
     }

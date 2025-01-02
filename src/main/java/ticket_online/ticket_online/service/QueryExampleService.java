@@ -1,5 +1,6 @@
 package ticket_online.ticket_online.service;
 
+import org.springframework.data.domain.Page;
 import ticket_online.ticket_online.dto.ApiResponse;
 import ticket_online.ticket_online.dto.event.EventHomeResDto;
 import ticket_online.ticket_online.dto.event.EventResDto;
@@ -30,4 +31,5 @@ public interface QueryExampleService {
     public Event findByIdJPA(Long id);
 
     public EventResDto findByIdJpaModelObject(Long id);
+
 }

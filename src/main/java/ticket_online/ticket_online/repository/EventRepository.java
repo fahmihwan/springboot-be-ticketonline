@@ -1,6 +1,8 @@
 package ticket_online.ticket_online.repository;
 
 import org.aspectj.weaver.AjAttribute;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -39,8 +41,7 @@ public interface EventRepository extends JpaRepository<Event, Long> {
     Object findByIdCustomeObject(Long id);
 
 
-    //opsi bikin native query aja, gmna?
-    //kalau pakai query native dan return Entitynya tetap ORM
+//    Page<Event> getEventPaginationRepo(String event_title, Pageable pageable);
 
 
 

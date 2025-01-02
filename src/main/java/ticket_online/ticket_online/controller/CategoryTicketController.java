@@ -14,7 +14,7 @@ public class CategoryTicketController {
     CategoryTicketService categoryTicketService;
 //
 //    @GetMapping("/{eventId}")
-////    public ResponseEntity<ApiResponse<>>
+//    public ResponseEntity<ApiResponse<>>
 
     @PostMapping
     public ApiResponse<CategoryTicket> createCategoryAdmin(@RequestBody CategoryTicket categoryTicket){

@@ -20,4 +20,13 @@ public class ConvertUtil {
             throw new IllegalArgumentException("Value is not a valid type (LocalDateTime, Timestamp, String)");
         }
     }
+
+    // Method untuk mendapatkan ekstensi file dari nama file
+    public static String getFileExtension(String filename) {
+        int lastIndexOfDot = filename.lastIndexOf('.');
+        if (lastIndexOfDot > 0) {
+            return filename.substring(lastIndexOfDot); // Misalnya .jpg atau .png
+        }
+        return "";
+    }
 }

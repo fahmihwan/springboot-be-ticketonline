@@ -28,6 +28,11 @@ CREATE TABLE events (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+
+alter table events add column venue Varchar(255);
+
+ALTER TABLE events alter COLUMN venue TYPE TEXT;
+
 CREATE TABLE category_tickets (
     id SERIAL PRIMARY KEY,
     event_id INTEGER REFERENCES events(id),

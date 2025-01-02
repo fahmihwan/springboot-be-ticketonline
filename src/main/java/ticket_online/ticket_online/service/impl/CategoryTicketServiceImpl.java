@@ -5,7 +5,7 @@ import org.springframework.stereotype.Service;
 import ticket_online.ticket_online.model.CategoryTicket;
 import ticket_online.ticket_online.model.Event;
 import ticket_online.ticket_online.repository.CategoryTicketRepository;
-import ticket_online.ticket_online.repository.EventRepository;
+
 import ticket_online.ticket_online.service.CategoryTicketService;
 import ticket_online.ticket_online.service.EventService;
 
@@ -17,8 +17,7 @@ public class CategoryTicketServiceImpl implements CategoryTicketService {
     @Autowired
     private CategoryTicketRepository categoryTicketRepository;
 
-    @Autowired
-    private EventRepository eventRepository;
+
 
 
     public CategoryTicket createCategoryTicket(CategoryTicket categoryTicket){

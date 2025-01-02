@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import ticket_online.ticket_online.dto.ApiResponse;
 import ticket_online.ticket_online.dto.event.EventDetailResDto;
 import ticket_online.ticket_online.dto.event.EventHomeResDto;
@@ -21,6 +22,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -71,10 +74,15 @@ public class EventServiceImpl implements EventService {
             for (Object[] row : results) {
                     log.info("Row data: {}", Arrays.toString(row));
 
+                // Mendapatkan URL gambar secara dinamis menggunakan ServletUriComponentsBuilder
+                String imageUrl = ServletUriComponentsBuilder.fromCurrentContextPath()
+                        .path("/uploaded-images/" + row[2])  // Menambahkan path gambar
+                        .toUriString();
+
                     EventHomeResDto eventHomeResDto = new EventHomeResDto();
                     eventHomeResDto.setId((Long) row[0]);
                     eventHomeResDto.setEvent_title((String) row[1]);
-                    eventHomeResDto.setImage((String) row[2]);
+                    eventHomeResDto.setImage(imageUrl);
                     eventHomeResDto.setDescription((String) row[3]);
                     eventHomeResDto.setStart_from((Integer) row[4]);
                     eventHomeResDto.setSchedule(ConvertUtil.convertToLocalDateTime(row[5]));
@@ -131,12 +139,27 @@ public class EventServiceImpl implements EventService {
     public ApiResponse<Event> createEventAdmins(Event event, MultipartFile image){
         try {
 
-            String fileName = image.getOriginalFilename();
-            Path path = Paths.get(UPLOAD_DIR + fileName);
-            Files.copy(image.getInputStream(), path);
+              File dir = new File(UPLOAD_DIR);
+              if(!dir.exists()){
+                  dir.mkdirs();
+              }
 
-            event.setImage(fileName);
 
+            LocalDateTime now = LocalDateTime.now();// Ambil waktu saat ini menggunakan LocalDateTime
+
+            // Format LocalDateTime menjadi string (misalnya 'yyyyMMddHHmmss')
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
+            String formattedDateTime = now.format(formatter);
+
+            String extension = ConvertUtil.getFileExtension(image.getOriginalFilename());
+            String uniqueFilename = "image_" + formattedDateTime + extension; // Buat nama file unik berdasarkan waktu saat ini
+
+            // Tulis file gambar ke disk
+            Path path = Paths.get(UPLOAD_DIR + uniqueFilename); // Tentukan path untuk menyimpan file
+            Files.write(path, image.getBytes());
+            event.setImage(uniqueFilename);
+
+            log.info("cek :{}",event);
             eventRepository.save(event);
             return new ApiResponse<>(true, "Event has Created", event);
         }catch (RuntimeException | IOException e){

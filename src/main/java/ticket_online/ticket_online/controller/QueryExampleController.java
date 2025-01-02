@@ -1,6 +1,7 @@
 package ticket_online.ticket_online.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -78,6 +79,14 @@ public class QueryExampleController {
         EventResDto response= queryExampleService.findByIdJpaModelObject(id);
         return ApiResponse.<EventResDto>builder().data(response).build();
     }
+
+//    @GetMapping("/event-pagination-repo")
+//    public ResponseEntity<Page<Event>> getPaginationRepository(){
+////        Page<Event> response = queryExampleService.getPaginationRepository();
+////        return  ResponseEntity.ok(response);
+//        return ResponseEntity.ok(null);
+//    }
+
 
     // findByIdJpaModelObject
 

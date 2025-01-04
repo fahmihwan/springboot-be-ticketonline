@@ -4,10 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import ticket_online.ticket_online.dto.ApiResponse;
 import ticket_online.ticket_online.dto.event.EventHomeResDto;
 import ticket_online.ticket_online.dto.event.EventResDto;
@@ -80,12 +77,23 @@ public class QueryExampleController {
         return ApiResponse.<EventResDto>builder().data(response).build();
     }
 
-//    @GetMapping("/event-pagination-repo")
-//    public ResponseEntity<Page<Event>> getPaginationRepository(){
-////        Page<Event> response = queryExampleService.getPaginationRepository();
-////        return  ResponseEntity.ok(response);
-//        return ResponseEntity.ok(null);
-//    }
+    @GetMapping("/event-pagination-repo")
+    public ResponseEntity<Page<Event>> getPaginationRepository(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size
+    ){
+        Page<Event> response = queryExampleService.getPaginationRepository(page, size);
+        return  ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/event-pagination-jdbc")
+    public ResponseEntity<ApiResponse<List<EventHomeResDto>>> getPaginationJdbc(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size
+    ){
+        ApiResponse<List<EventHomeResDto>> response = queryExampleService.getPaginationJdbc(page, size);
+        return  ResponseEntity.ok(response);
+    }
 
 
     // findByIdJpaModelObject

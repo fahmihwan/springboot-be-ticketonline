@@ -4,7 +4,12 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
@@ -160,6 +165,25 @@ public class QueryExampleServiceImpl implements QueryExampleService {
         }
     }
 
+    public Page<Event> getPaginationRepository(int page, int size){
+        Pageable pageable = PageRequest.of(page,size);
+        return eventRepository.getPaginatedEvents(pageable);
+    }
+
+    //query raw pakai JDBC easy to use
+    public ApiResponse<List<EventHomeResDto>> getPaginationJdbc(int page, int size){
+
+        int offset = page * size;
+        String sql = "SELECT * FROM (SELECT e.id,e.event_title, e.image, e.description, max(ct.price) as start_from, e.schedule\n" +
+                "\tFROM events e\n" +
+                "\tLEFT JOIN category_tickets ct on e.id = ct.event_id\n" +
+                "\tGROUP BY e.id, e.event_title, e.image, e.description, e.schedule\n" +
+                "\tlimit ? offset ?\n" +
+                ") as x\n";
+
+        List<EventHomeResDto> data = jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(EventHomeResDto.class), size, offset);
+       return new ApiResponse<>(true, "Event retrieved",data );
+    }
 
 
 }

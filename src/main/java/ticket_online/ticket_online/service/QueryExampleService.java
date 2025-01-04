@@ -32,4 +32,7 @@ public interface QueryExampleService {
 
     public EventResDto findByIdJpaModelObject(Long id);
 
+    public Page<Event> getPaginationRepository(int page, int size);
+
+    public ApiResponse<List<EventHomeResDto>> getPaginationJdbc(int page, int size);
 }

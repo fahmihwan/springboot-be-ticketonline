@@ -19,6 +19,10 @@ import java.util.Optional;
 @Repository
 public interface EventRepository extends JpaRepository<Event, Long> {
 
+    // Query kustom dengan pagination
+    @Query("SELECT e FROM Event e")
+    Page<Event> getPaginatedEvents(Pageable pageable);
+
     @Query(value = "SELECT e.id,e.event_title, e.image, e.description, max(ct.price) as start_from, e.schedule\n" +
             "            FROM events e\n" +
             "            LEFT JOIN category_tickets ct on e.id = ct.event_id \n" +
@@ -40,8 +44,6 @@ public interface EventRepository extends JpaRepository<Event, Long> {
     @Query(value = "SELECT id, event_title, image, venue, schedule, description, created_at  FROM events WHERE id = :id", nativeQuery = true)
     Object findByIdCustomeObject(Long id);
 
-
-//    Page<Event> getEventPaginationRepo(String event_title, Pageable pageable);
 
 
 

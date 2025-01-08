@@ -4,6 +4,10 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -16,6 +20,7 @@ import ticket_online.ticket_online.repository.EventRepository;
 import ticket_online.ticket_online.service.CategoryTicketService;
 import ticket_online.ticket_online.service.EventService;
 import ticket_online.ticket_online.util.ConvertUtil;
+import ticket_online.ticket_online.util.GenerateUtil;
 
 import java.io.File;
 import java.io.IOException;
@@ -55,7 +60,7 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
-    public ApiResponse<List<EventHomeResDto>> getEventWithMinPrice(Integer total){
+    public List<EventHomeResDto> getEventWithMinPrice(Integer total){
         try {
             if(total > 960){
                 throw new RuntimeException("Maximum fetch event");
@@ -75,9 +80,7 @@ public class EventServiceImpl implements EventService {
                     log.info("Row data: {}", Arrays.toString(row));
 
                 // Mendapatkan URL gambar secara dinamis menggunakan ServletUriComponentsBuilder
-                String imageUrl = ServletUriComponentsBuilder.fromCurrentContextPath()
-                        .path("/uploaded-images/" + row[2])  // Menambahkan path gambar
-                        .toUriString();
+               String imageUrl = GenerateUtil.generateImgUrl((String) row[2]);
 
                     EventHomeResDto eventHomeResDto = new EventHomeResDto();
                     eventHomeResDto.setId((Long) row[0]);
@@ -89,13 +92,169 @@ public class EventServiceImpl implements EventService {
                     eventHomeResDto.setVenue((String) row[6]);
                     eventHomeResDtoList.add(eventHomeResDto);
             }
-
-            return new ApiResponse<>(true, "Event retrieved successfully", eventHomeResDtoList);
+            return eventHomeResDtoList;
         }catch (RuntimeException e){
-            return new ApiResponse<>(false, e.getMessage(), null);
+            throw new RuntimeException(e.getMessage());
 
         }
     }
+
+    @Override
+    public EventDetailResDto getEventBySlug(String slug){
+        try {
+            Object[] eventObj = (Object[]) eventRepository.findEventsWithMinPriceBySlug(slug);
+            if(eventObj == null){
+                throw new RuntimeException("Event Detail Not Found");
+            }
+            EventDetailResDto eventDetailResDto = new EventDetailResDto();
+            eventDetailResDto.setEventTitle((String) eventObj[1]);
+            eventDetailResDto.setImage(GenerateUtil.generateImgUrl((String) eventObj[2]));
+            eventDetailResDto.setVenue((String) eventObj[3]);
+            eventDetailResDto.setDescription((String) eventObj[4]);
+            eventDetailResDto.setStartFromPrice((Integer) eventObj[5]);
+            eventDetailResDto.setSchedule(ConvertUtil.convertToLocalDateTime(eventObj[6]));
+            eventDetailResDto.setCreatedAt(ConvertUtil.convertToLocalDateTime(eventObj[7]));
+            eventDetailResDto.setSlug((String) eventObj[8]);
+            return  eventDetailResDto;
+        }catch (RuntimeException e){
+            throw new RuntimeException(e.getMessage(), e);
+        }
+    }
+
+
+    @Override
+    public Event getEventWithAllCategoryTickets(Long eventId){
+        System.out.println(eventId);
+        try {
+            Event event = eventRepository.findById(eventId).orElseThrow(() -> new RuntimeException("Event not found"));
+            return event;
+        }catch (RuntimeException e){
+            throw new RuntimeException(e.getMessage(), e);
+        }
+    }
+
+
+    public Page<Event> getEventPagination(int page, int size){
+        try {
+            Pageable pageable = PageRequest.of(page,size);
+            Page<Event> response =  eventRepository.getPaginatedEvents(pageable);
+
+            List<Event> events = new ArrayList<>();
+
+            for (Event event : response){
+                String imageUrl = ServletUriComponentsBuilder.fromCurrentContextPath()
+                        .path("/uploaded-images/" + event.getImage())  // Menambahkan path gambar
+                        .toUriString();
+                event.setImage(imageUrl);
+                events.add(event);
+            }
+            Page<Event> mappingData = new PageImpl<>(events, pageable, response.getTotalElements());
+            return mappingData;
+        } catch (RuntimeException e) {
+            throw new RuntimeException(e.getMessage(), e);
+        }
+    }
+
+
+    @Override
+    public Event createEventAdmin(Event event, MultipartFile image){
+        try {
+              File dir = new File(UPLOAD_DIR);
+              if(!dir.exists()){
+                  dir.mkdirs();
+              }
+
+              boolean isExistSlug = eventRepository.existsBySlug(event.getSlug());
+              if(isExistSlug){
+                  throw new RuntimeException("Slug is Exists");
+              }
+
+            LocalDateTime now = LocalDateTime.now();// Ambil waktu saat ini menggunakan LocalDateTime
+
+            // Format LocalDateTime menjadi string (misalnya 'yyyyMMddHHmmss')
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
+            String formattedDateTime = now.format(formatter);
+
+            String extension = ConvertUtil.getFileExtension(image.getOriginalFilename());
+            String uniqueFilename = "image_" + formattedDateTime + extension; // Buat nama file unik berdasarkan waktu saat ini
+
+            // Tulis file gambar ke disk
+            Path path = Paths.get(UPLOAD_DIR + uniqueFilename); // Tentukan path untuk menyimpan file
+            Files.write(path, image.getBytes());
+            event.setImage(uniqueFilename);
+            eventRepository.save(event);
+            return event;
+        }catch (RuntimeException | IOException e){
+            throw new RuntimeException(e.getMessage(), e);
+        }
+    }
+
+
+    @Override
+    public Event updateEventAdmin(Event event, MultipartFile image, String slug){
+        try {
+
+            File dir = new File(UPLOAD_DIR);
+            if(!dir.exists()){
+                dir.mkdirs();
+            }
+
+
+            boolean isExistSlug = eventRepository.existsBySlug(event.getSlug());
+            if(!isExistSlug){
+                throw new RuntimeException("Slug is not Exists");
+            }
+
+            LocalDateTime now = LocalDateTime.now();// Ambil waktu saat ini menggunakan LocalDateTime
+
+            // Format LocalDateTime menjadi string (misalnya 'yyyyMMddHHmmss')
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
+            String formattedDateTime = now.format(formatter);
+
+            String extension = ConvertUtil.getFileExtension(image.getOriginalFilename());
+            String uniqueFilename = "image_" + formattedDateTime + extension; // Buat nama file unik berdasarkan waktu saat ini
+
+            // Tulis file gambar ke disk
+            Path path = Paths.get(UPLOAD_DIR + uniqueFilename); // Tentukan path untuk menyimpan file
+            Files.write(path, image.getBytes());
+            event.setImage(uniqueFilename);
+
+            eventRepository.save(event);
+            return event;
+        }catch (RuntimeException | IOException e){
+            throw new RuntimeException(e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public Boolean removeEventAdmin(Long id){
+        try {
+            Event event = eventRepository.findById(id).orElseThrow(() -> new RuntimeException("Event not found"));
+            //  cek lagi jika event sudah ada transaksi maka tidak boleh di hapus
+            event.setIs_active(false);
+            eventRepository.save(event);
+            return true;
+        }catch (RuntimeException e){
+            throw new RuntimeException(e.getMessage(), e);
+        }
+    }
+
+
+    @Transactional
+    @Override
+    public Boolean destroyEventAdminWithTickets(Long eventId){
+        try {
+            Event event = eventRepository.findById(eventId).orElseThrow(() -> new RuntimeException("Event not found"));
+             // cek lagi jika event sudah ada transaksi maka tidak boleh di hapus
+            eventRepository.deleteById(eventId);
+            categoryTicketService.destroyCategoryTicketByEventId(eventId);
+            return  true;
+        }catch (RuntimeException e){
+            throw new RuntimeException(e.getMessage(), e);
+        }
+    }
+
+    ////=================================================================================================================================================================
 
 
     @Override
@@ -122,82 +281,6 @@ public class EventServiceImpl implements EventService {
             return new ApiResponse<>(false,e.getMessage(), null);
         }
     }
-
-
-    @Override
-    public ApiResponse<Event> getEventWithAllCategoryTickets(Long eventId){
-        System.out.println(eventId);
-        try {
-            Event event = eventRepository.findById(eventId).orElseThrow(() -> new RuntimeException("Event not found"));
-            return new ApiResponse<>(true, "Event detail with categories retrieved", event);
-        }catch (RuntimeException e){
-            return new ApiResponse<>(false, e.getMessage(), null);
-        }
-    }
-
-    @Override
-    public ApiResponse<Event> createEventAdmins(Event event, MultipartFile image){
-        try {
-
-              File dir = new File(UPLOAD_DIR);
-              if(!dir.exists()){
-                  dir.mkdirs();
-              }
-
-
-            LocalDateTime now = LocalDateTime.now();// Ambil waktu saat ini menggunakan LocalDateTime
-
-            // Format LocalDateTime menjadi string (misalnya 'yyyyMMddHHmmss')
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
-            String formattedDateTime = now.format(formatter);
-
-            String extension = ConvertUtil.getFileExtension(image.getOriginalFilename());
-            String uniqueFilename = "image_" + formattedDateTime + extension; // Buat nama file unik berdasarkan waktu saat ini
-
-            // Tulis file gambar ke disk
-            Path path = Paths.get(UPLOAD_DIR + uniqueFilename); // Tentukan path untuk menyimpan file
-            Files.write(path, image.getBytes());
-            event.setImage(uniqueFilename);
-
-            log.info("cek :{}",event);
-            eventRepository.save(event);
-            return new ApiResponse<>(true, "Event has Created", event);
-        }catch (RuntimeException | IOException e){
-            return new ApiResponse<>(false, e.getMessage(), null);
-        }
-    }
-
-    @Override
-    public ApiResponse<Boolean> removeEventAdmin(Long id){
-        try {
-            Event event = eventRepository.findById(id).orElseThrow(() -> new RuntimeException("Event not found"));
-            //  cek lagi jika event sudah ada transaksi maka tidak boleh di hapus
-            event.setIs_active(false);
-            eventRepository.save(event);
-            return new ApiResponse<>(true, "Event has been removed", null);
-        }catch (RuntimeException e){
-            return new ApiResponse<>(false, e.getMessage(), null);
-        }
-    }
-
-
-    @Transactional
-    @Override
-    public Boolean destroyEventAdminWithTickets(Long eventId){
-        try {
-            Event event = eventRepository.findById(eventId).orElseThrow(() -> new RuntimeException("Event not found"));
-             // cek lagi jika event sudah ada transaksi maka tidak boleh di hapus
-            eventRepository.deleteById(eventId);
-            categoryTicketService.destroyCategoryTicketByEventId(eventId);
-            return  true;
-        }catch (RuntimeException e){
-            System.out.println("Error: " + e.getMessage());
-            return  false;
-        }
-    }
-
-
-
 
 
 }

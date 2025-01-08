@@ -20,4 +20,5 @@ public class EventDetailResDto {
     private String description;
     private LocalDateTime createdAt;
     private Integer startFromPrice;
+    private String slug;
 }

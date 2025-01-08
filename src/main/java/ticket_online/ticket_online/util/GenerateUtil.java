@@ -1,5 +1,6 @@
 package ticket_online.ticket_online.util;
 
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import ticket_online.ticket_online.dto.ApiResponse;
 
 import java.security.MessageDigest;
@@ -42,5 +43,13 @@ public class GenerateUtil {
         }catch (Exception e){
             return  null;
         }
+    }
+
+    public static String generateImgUrl(String image){
+        return  ServletUriComponentsBuilder.fromCurrentContextPath()
+                .path("/uploaded-images/" + image)  // Menambahkan path gambar
+                .toUriString();
+
+
     }
 }

@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.support.PageableUtils;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -42,7 +43,6 @@ public class QueryExampleServiceImpl implements QueryExampleService {
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
-
 
 
     // Get Data from External API (https://jsonplaceholder.typicode.com/)
@@ -183,6 +183,10 @@ public class QueryExampleServiceImpl implements QueryExampleService {
 
         List<EventHomeResDto> data = jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(EventHomeResDto.class), size, offset);
        return new ApiResponse<>(true, "Event retrieved",data );
+    }
+
+    public List<Event> getEvents(){
+        return eventRepository.findAll();
     }
 
 

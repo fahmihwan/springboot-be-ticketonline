@@ -19,8 +19,12 @@ import java.util.Optional;
 @Repository
 public interface EventRepository extends JpaRepository<Event, Long> {
 
+    boolean existsBySlug(String slug); //query method
+
+    Event findBySlug(String slug);
+
     // Query kustom dengan pagination
-    @Query("SELECT e FROM Event e")
+    @Query("SELECT e FROM Event e WHERE e.is_active = true ORDER BY e.created_at DESC")
     Page<Event> getPaginatedEvents(Pageable pageable);
 
     @Query(value = "SELECT e.id,e.event_title, e.image, e.description, max(ct.price) as start_from, e.schedule\n" +
@@ -29,20 +33,28 @@ public interface EventRepository extends JpaRepository<Event, Long> {
             "            GROUP BY e.id, e.event_title, e.image, e.description, e.schedule", nativeQuery = true)
     List<Object[]> getAllEventsWithMinPrice();
 
-
-
-    @Query(value = "SELECT e.id,e.event_title, e.image, e.venue, e.description, max(ct.price) as start_from_price, e.schedule, e.created_at\n" +
+    @Query(value = "SELECT e.id,e.event_title, e.image, e.venue, e.description, max(ct.price) as start_from_price, e.schedule, e.created_at, e.slug\n" +
             "\t\tFROM events e\n" +
             "\t\tLEFT JOIN category_tickets ct on e.id = ct.event_id\n" +
-            "\t\tWHERE e.id = :id\n" +
-            "\t\tGROUP BY e.id, e.event_title, e.image, e.venue, e.description, e.schedule, e.created_at", nativeQuery = true)
-    Object findEventsWithMinPriceWhereEventId(Long id);
+            "\t\tWHERE e.slug= :slug\n" +
+            "\t\tGROUP BY e.id, e.event_title, e.image, e.venue, e.description, e.schedule, e.created_at, e.slug", nativeQuery = true)
+    Object findEventsWithMinPriceBySlug(String slug);
+
 
     @Query(value = "SELECT * FROM events WHERE id = :id", nativeQuery = true)
     Event findByIdCustome(Long id);
 
     @Query(value = "SELECT id, event_title, image, venue, schedule, description, created_at  FROM events WHERE id = :id", nativeQuery = true)
     Object findByIdCustomeObject(Long id);
+
+
+//=================================================================================================================================================================
+    @Query(value = "SELECT e.id,e.event_title, e.image, e.venue, e.description, max(ct.price) as start_from_price, e.schedule, e.created_at\n" +
+            "\t\tFROM events e\n" +
+            "\t\tLEFT JOIN category_tickets ct on e.id = ct.event_id\n" +
+            "\t\tWHERE e.id = :id\n" +
+            "\t\tGROUP BY e.id, e.event_title, e.image, e.venue, e.description, e.schedule, e.created_at", nativeQuery = true)
+    Object findEventsWithMinPriceWhereEventId(Long id);
 
 
 

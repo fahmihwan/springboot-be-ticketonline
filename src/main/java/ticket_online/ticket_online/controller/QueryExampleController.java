@@ -10,6 +10,7 @@ import ticket_online.ticket_online.dto.event.EventHomeResDto;
 import ticket_online.ticket_online.dto.event.EventResDto;
 import ticket_online.ticket_online.model.Event;
 import ticket_online.ticket_online.model.User;
+import ticket_online.ticket_online.repository.EventRepository;
 import ticket_online.ticket_online.service.QueryExampleService;
 import ticket_online.ticket_online.service.impl.QueryExampleServiceImpl;
 
@@ -25,6 +26,9 @@ public class QueryExampleController {
 
     @Autowired
     private QueryExampleServiceImpl queryExampleServiceImpl;
+
+    @Autowired
+    private EventRepository eventRepository;
 
     @GetMapping("/api-jsonplaceholder")
     public ResponseEntity<String> getApiJsonPlaceHolder(){
@@ -94,6 +98,15 @@ public class QueryExampleController {
         ApiResponse<List<EventHomeResDto>> response = queryExampleService.getPaginationJdbc(page, size);
         return  ResponseEntity.ok(response);
     }
+
+
+
+    @GetMapping("/get-only-event-repo")
+    public ResponseEntity<List<Event>> getOnlyEventRepo(){
+        return  ResponseEntity.ok(queryExampleService.getEvents());
+    }
+
+
 
 
     // findByIdJpaModelObject

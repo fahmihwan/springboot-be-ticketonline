@@ -35,4 +35,10 @@ public interface QueryExampleService {
     public Page<Event> getPaginationRepository(int page, int size);
 
     public ApiResponse<List<EventHomeResDto>> getPaginationJdbc(int page, int size);
+
+
+    public List<Event> getEvents();
+
+
+
 }

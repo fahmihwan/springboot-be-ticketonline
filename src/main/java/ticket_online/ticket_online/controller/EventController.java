@@ -2,21 +2,19 @@ package ticket_online.ticket_online.controller;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 import ticket_online.ticket_online.dto.ApiResponse;
 import ticket_online.ticket_online.dto.event.EventDetailResDto;
 import ticket_online.ticket_online.dto.event.EventHomeResDto;
+import ticket_online.ticket_online.dto.event.EventReqDto;
 import ticket_online.ticket_online.model.Event;
 import ticket_online.ticket_online.service.EventService;
 
 import java.time.LocalDateTime;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.Map;
 
 @Slf4j
 @RestController
@@ -28,83 +26,122 @@ public class EventController {
 
     @GetMapping("/{total}/events")
     public ResponseEntity<ApiResponse<List<EventHomeResDto>>> getEventHome(@PathVariable Integer total){
-         ApiResponse<List<EventHomeResDto>> response =  eventService.getEventWithMinPrice(total);
-        if (response.getSuccess()) {
-            return ResponseEntity.ok(response);
-        } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        try {
+            List<EventHomeResDto> response =  eventService.getEventWithMinPrice(total);
+            return ResponseEntity.ok(new ApiResponse<>(true, "Event retrieved successfully", response));
+        }catch (RuntimeException e){
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse<>(false, e.getMessage(), null));
+        }
+
+    }
+
+    @GetMapping("/admin/pagination")
+    public ResponseEntity<ApiResponse<Page<Event>>> getEventAdmin(@RequestParam(value = "page", defaultValue = "0") int page,
+                                                                  @RequestParam(value = "size",defaultValue = "5") int size){
+
+        try {
+            Page<Event> response = eventService.getEventPagination(page, size);
+            return ResponseEntity.ok(new ApiResponse<>(true, "Event retrieved successfully", response));
+        }catch (RuntimeException e){
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse<>(false, e.getMessage(), null));
         }
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<EventDetailResDto>> getEventDetail(@PathVariable Long id){
-        ApiResponse<EventDetailResDto> response = eventService.getEventById(id);
-        if(response.getSuccess()){
-            return ResponseEntity.ok(response);
-        }else{
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+    @GetMapping("/{slug}")
+    public ResponseEntity<ApiResponse<EventDetailResDto>> getEventDetailBySlug(@PathVariable String slug){
+        try {
+            EventDetailResDto response = eventService.getEventBySlug(slug);
+            return ResponseEntity.ok(new ApiResponse<>(true, "Event Detail retrieved", response));
+        }catch (RuntimeException e){
+            return ResponseEntity.ok(new ApiResponse<>(false, e.getMessage(), null));
         }
     }
 
     @GetMapping("/{eventId}/with-category-tickets")
     public ResponseEntity<ApiResponse<Event>> getEventWithAllCategoryTickets(@PathVariable Long eventId){
-        ApiResponse<Event> response = eventService.getEventWithAllCategoryTickets(eventId);
-        if(response.getSuccess()){
-            return ResponseEntity.ok(response);
-        }else{
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        try {
+            Event response = eventService.getEventWithAllCategoryTickets(eventId);
+            return ResponseEntity.ok(new ApiResponse<>(true, "Event Detail retrieved", response));
+        }catch (RuntimeException e){
+            return ResponseEntity.ok(new ApiResponse<>(false, e.getMessage(), null));
         }
     }
 
 
-
-//    public ResponseEntity<ApiResponse<Event>> createEventAdmin(@RequestBody Event event){
-//    public ResponseEntity<ApiResponse<Event>> createEventAdmin(@RequestBody Event event, @RequestParam("image") MultipartFile image){
-
-//    public ResponseEntity<ApiResponse<Event>> createEventAdmin( @RequestParam("event_title") String eventTitle,
-//                                                                @RequestParam("schedule") String schedule,
-//                                                                @RequestParam("venue") String venue,
-//                                                                @RequestParam("description") String description,
-//                                                                @RequestParam("admin_id") Long adminId,
-//                                                                @RequestParam("image") MultipartFile image){
     @PostMapping
-    public ResponseEntity<ApiResponse<Event>> createEventAdmin(@RequestParam("event_title") String eventTitle,
-                                                               @RequestParam("schedule") String schedule,
-                                                               @RequestParam("venue") String venue,
-                                                               @RequestParam("description") String description,
-                                                               @RequestParam("admin_id") Long adminId,
-                                                               @RequestParam("image") MultipartFile image){
+    public ResponseEntity<ApiResponse<Event>> storeEventAdmin(@ModelAttribute EventReqDto eventReqDto){
 
-        LocalDateTime dateSchedule = LocalDateTime.parse(schedule); // Spring Boot akan mengonversi ISO 8601 string menjadi LocalDateTime
-        Event event = new Event();
-        event.setEvent_title(eventTitle);
-        event.setSchedule(dateSchedule);
-        event.setVenue(venue);
-        event.setDescription(description);
-        event.setAdmin_id(adminId);
+        try {
+            LocalDateTime dateSchedule = LocalDateTime.parse(eventReqDto.getSchedule()); // Spring Boot akan mengonversi ISO 8601 string menjadi LocalDateTime
+            Event event = new Event();
+            event.setEvent_title(eventReqDto.getEventTitle());
+            event.setSchedule(dateSchedule);
+            event.setVenue(eventReqDto.getVenue());
+            event.setSlug(eventReqDto.getSlug());
+            event.setDescription(eventReqDto.getDescription());
+            event.setAdmin_id(eventReqDto.getAdminId());
 
-        ApiResponse<Event> response = eventService.createEventAdmins(event, image);
-          if(response.getSuccess()){
-              return ResponseEntity.status(HttpStatus.CREATED).body(response);
-          }else{
-              return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
-          }
+            Event response = eventService.createEventAdmin(event, eventReqDto.getImage());
+            return ResponseEntity.ok(new ApiResponse<>(true, "Event has Created", response));
+        }catch (RuntimeException e){
+            return ResponseEntity.ok(new ApiResponse<>(false, e.getMessage(), null));
+        }
+
+    }
+
+    @PutMapping("/{slug}")
+    public ResponseEntity<ApiResponse<Event>> updateEventAdmin(@ModelAttribute EventReqDto eventReqDto, @PathVariable String slug){
+
+        try {
+            LocalDateTime dateSchedule = LocalDateTime.parse(eventReqDto.getSchedule()); // Spring Boot akan mengonversi ISO 8601 string menjadi LocalDateTime
+            Event event = new Event();
+            event.setEvent_title(eventReqDto.getEventTitle());
+            event.setSchedule(dateSchedule);
+            event.setVenue(eventReqDto.getVenue());
+            event.setSlug(eventReqDto.getSlug());
+            event.setDescription(eventReqDto.getDescription());
+            event.setAdmin_id(eventReqDto.getAdminId());
+
+            Event response = eventService.updateEventAdmin(event, eventReqDto.getImage(), slug);
+            return ResponseEntity.status(HttpStatus.CREATED).body(new ApiResponse<>(true, "Event has updated ", event));
+        }catch (RuntimeException e){
+            return ResponseEntity.ok(new ApiResponse<>(false, e.getMessage(), null));
+        }
+
     }
 
     @DeleteMapping("/remove/{id}")
     public ResponseEntity<ApiResponse<Boolean>> removeEventAdmin(@PathVariable Long id){
-        ApiResponse<Boolean> response = eventService.removeEventAdmin(id);
-        if(response.getSuccess()){
-            return ResponseEntity.noContent().build();
-        }else{
-            return ResponseEntity.status(HttpStatus. NOT_FOUND).body(response);
+
+        try {
+            Boolean response = eventService.removeEventAdmin(id);
+            return ResponseEntity.ok(new ApiResponse<>(true, "Event has deleted", response));
+        }catch (RuntimeException e){
+            return ResponseEntity.ok(new ApiResponse<>(false, e.getMessage(), null));
         }
+
     }
 
     @DeleteMapping("/destroy/{id}")
-    public ApiResponse<Boolean> destroyEventAdminWithTickets(@PathVariable Long id){
-        Boolean response =  eventService.destroyEventAdminWithTickets(id);
-        return ApiResponse.<Boolean>builder().data(response).build();
+    public ResponseEntity<ApiResponse<Boolean>> destroyEventAdminWithTickets(@PathVariable Long id){
+        try {
+            Boolean response =  eventService.destroyEventAdminWithTickets(id);
+            return ResponseEntity.ok(new ApiResponse<>(true, "Event has deleted", response));
+        }catch (RuntimeException e){
+            return ResponseEntity.ok(new ApiResponse<>(false, e.getMessage(), null));
+        }
+
     }
 
+    ////=================================================================================================================================================================
+//
+//    @GetMapping("/{id}")
+//    public ResponseEntity<ApiResponse<EventDetailResDto>> getEventDetailById(@PathVariable Long id){
+//        ApiResponse<EventDetailResDto> response = eventService.getEventById(id);
+//        if(response.getSuccess()){
+//            return ResponseEntity.ok(response);
+//        }else{
+//            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+//        }
+//    }
 }

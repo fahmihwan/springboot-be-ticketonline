@@ -6,6 +6,7 @@ import org.springframework.web.multipart.MultipartFile;
 import ticket_online.ticket_online.dto.ApiResponse;
 import ticket_online.ticket_online.dto.event.EventDetailResDto;
 import ticket_online.ticket_online.dto.event.EventHomeResDto;
+import ticket_online.ticket_online.dto.event.EventReqDto;
 import ticket_online.ticket_online.model.Event;
 
 import java.util.List;
@@ -17,13 +18,13 @@ public interface EventService {
 
     public EventDetailResDto getEventBySlug(String slug);
 
-    public Event getEventWithAllCategoryTickets(Long eventId);
+    public Event getEventWithAllCategoryTickets(String slug);
 
     public Page<Event> getEventPagination(int page, int size);
 
-    public Event createEventAdmin(Event event, MultipartFile image);
+    public Event createEventAdmin(EventReqDto eventReqDto);
 
-    public Event updateEventAdmin(Event event, MultipartFile image, String slug);
+    public Event updateEventAdmin(EventReqDto eventReqDto, String slug);
 
     public Boolean removeEventAdmin(Long id);
 

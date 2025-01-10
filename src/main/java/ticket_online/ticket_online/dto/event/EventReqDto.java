@@ -15,8 +15,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class EventReqDto {
 
-    @JsonProperty("event_title") // Penyesuaian nama dengan frontend (snake_case)
-    private String eventTitle;
+    private String event_title;
     private MultipartFile image;
     private String schedule;
     private String venue;
@@ -24,8 +23,8 @@ public class EventReqDto {
     private String slug;
     private String description;
 
-    @JsonProperty("admin_id")
-    private Long adminId;
+
+    private Long admin_id;
 
 //      formData.append('event_title', payload.event_title)
 //            formData.append('image', payload.image)

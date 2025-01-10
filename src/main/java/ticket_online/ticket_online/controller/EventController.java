@@ -58,9 +58,9 @@ public class EventController {
     }
 
     @GetMapping("/{eventId}/with-category-tickets")
-    public ResponseEntity<ApiResponse<Event>> getEventWithAllCategoryTickets(@PathVariable Long eventId){
+    public ResponseEntity<ApiResponse<Event>> getEventWithAllCategoryTickets(@PathVariable String slug){
         try {
-            Event response = eventService.getEventWithAllCategoryTickets(eventId);
+            Event response = eventService.getEventWithAllCategoryTickets(slug);
             return ResponseEntity.ok(new ApiResponse<>(true, "Event Detail retrieved", response));
         }catch (RuntimeException e){
             return ResponseEntity.ok(new ApiResponse<>(false, e.getMessage(), null));
@@ -72,16 +72,7 @@ public class EventController {
     public ResponseEntity<ApiResponse<Event>> storeEventAdmin(@ModelAttribute EventReqDto eventReqDto){
 
         try {
-            LocalDateTime dateSchedule = LocalDateTime.parse(eventReqDto.getSchedule()); // Spring Boot akan mengonversi ISO 8601 string menjadi LocalDateTime
-            Event event = new Event();
-            event.setEvent_title(eventReqDto.getEventTitle());
-            event.setSchedule(dateSchedule);
-            event.setVenue(eventReqDto.getVenue());
-            event.setSlug(eventReqDto.getSlug());
-            event.setDescription(eventReqDto.getDescription());
-            event.setAdmin_id(eventReqDto.getAdminId());
-
-            Event response = eventService.createEventAdmin(event, eventReqDto.getImage());
+            Event response = eventService.createEventAdmin(eventReqDto);
             return ResponseEntity.ok(new ApiResponse<>(true, "Event has Created", response));
         }catch (RuntimeException e){
             return ResponseEntity.ok(new ApiResponse<>(false, e.getMessage(), null));
@@ -93,17 +84,10 @@ public class EventController {
     public ResponseEntity<ApiResponse<Event>> updateEventAdmin(@ModelAttribute EventReqDto eventReqDto, @PathVariable String slug){
 
         try {
-            LocalDateTime dateSchedule = LocalDateTime.parse(eventReqDto.getSchedule()); // Spring Boot akan mengonversi ISO 8601 string menjadi LocalDateTime
-            Event event = new Event();
-            event.setEvent_title(eventReqDto.getEventTitle());
-            event.setSchedule(dateSchedule);
-            event.setVenue(eventReqDto.getVenue());
-            event.setSlug(eventReqDto.getSlug());
-            event.setDescription(eventReqDto.getDescription());
-            event.setAdmin_id(eventReqDto.getAdminId());
 
-            Event response = eventService.updateEventAdmin(event, eventReqDto.getImage(), slug);
-            return ResponseEntity.status(HttpStatus.CREATED).body(new ApiResponse<>(true, "Event has updated ", event));
+
+            Event response = eventService.updateEventAdmin(eventReqDto, slug);
+            return ResponseEntity.status(HttpStatus.CREATED).body(new ApiResponse<>(true, "Event has updated ", response));
         }catch (RuntimeException e){
             return ResponseEntity.ok(new ApiResponse<>(false, e.getMessage(), null));
         }

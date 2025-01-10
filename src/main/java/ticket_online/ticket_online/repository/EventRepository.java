@@ -21,7 +21,7 @@ public interface EventRepository extends JpaRepository<Event, Long> {
 
     boolean existsBySlug(String slug); //query method
 
-    Event findBySlug(String slug);
+    Optional<Event> findFirstBySlug(String slug);
 
     // Query kustom dengan pagination
     @Query("SELECT e FROM Event e WHERE e.is_active = true ORDER BY e.created_at DESC")
@@ -36,8 +36,9 @@ public interface EventRepository extends JpaRepository<Event, Long> {
     @Query(value = "SELECT e.id,e.event_title, e.image, e.venue, e.description, max(ct.price) as start_from_price, e.schedule, e.created_at, e.slug\n" +
             "\t\tFROM events e\n" +
             "\t\tLEFT JOIN category_tickets ct on e.id = ct.event_id\n" +
-            "\t\tWHERE e.slug= :slug\n" +
-            "\t\tGROUP BY e.id, e.event_title, e.image, e.venue, e.description, e.schedule, e.created_at, e.slug", nativeQuery = true)
+            "\t\tWHERE e.slug= :slug\n AND e.is_active = true" +
+            "\t\tGROUP BY e.id, e.event_title, e.image, e.venue, e.description, e.schedule, e.created_at, e.slug" +
+            "\t\tLIMIT 1", nativeQuery = true)
     Object findEventsWithMinPriceBySlug(String slug);
 
 

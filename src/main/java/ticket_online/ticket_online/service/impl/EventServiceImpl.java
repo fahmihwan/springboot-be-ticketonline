@@ -3,6 +3,7 @@ import jakarta.persistence.EntityManager;
 
 import jakarta.persistence.Query;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.aop.scope.ScopedObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -15,6 +16,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import ticket_online.ticket_online.dto.ApiResponse;
 import ticket_online.ticket_online.dto.event.EventDetailResDto;
 import ticket_online.ticket_online.dto.event.EventHomeResDto;
+import ticket_online.ticket_online.dto.event.EventReqDto;
 import ticket_online.ticket_online.model.Event;
 import ticket_online.ticket_online.repository.EventRepository;
 import ticket_online.ticket_online.service.CategoryTicketService;
@@ -32,6 +34,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 
 @Service
@@ -61,14 +64,17 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public List<EventHomeResDto> getEventWithMinPrice(Integer total){
+        System.out.println("tes ok");
         try {
             if(total > 960){
                 throw new RuntimeException("Maximum fetch event");
             }
-            String sql = "SELECT e.id,e.event_title, e.image, e.description, min(ct.price) as start_from, e.schedule, e.venue \n" +
+            String sql = "SELECT e.id,e.event_title, e.image, e.description, min(ct.price) as start_from, e.schedule, e.venue, e.slug \n" +
                     "\tFROM events e\n" +
                     "\tLEFT JOIN category_tickets ct on e.id = ct.event_id \n" +
-                    "\tGROUP BY e.id, e.event_title, e.image, e.description, e.schedule, e.venue \n" +
+                    "WHERE e.is_active = true" +
+                    "\tGROUP BY e.id, e.event_title, e.image, e.description, e.schedule, e.venue, e.slug \n" +
+                    "\tORDER BY e.created_at DESC \n" +
                     "LIMIT\t" + total;
 
             Query query = entityManager.createNativeQuery(sql);
@@ -77,7 +83,7 @@ public class EventServiceImpl implements EventService {
             List<EventHomeResDto> eventHomeResDtoList = new ArrayList<>();
 
             for (Object[] row : results) {
-                    log.info("Row data: {}", Arrays.toString(row));
+//                    log.info("Row data: {}", Arrays.toString(row));
 
                 // Mendapatkan URL gambar secara dinamis menggunakan ServletUriComponentsBuilder
                String imageUrl = GenerateUtil.generateImgUrl((String) row[2]);
@@ -90,6 +96,7 @@ public class EventServiceImpl implements EventService {
                     eventHomeResDto.setStart_from((Integer) row[4]);
                     eventHomeResDto.setSchedule(ConvertUtil.convertToLocalDateTime(row[5]));
                     eventHomeResDto.setVenue((String) row[6]);
+                    eventHomeResDto.setSlug((String) row[7]);
                     eventHomeResDtoList.add(eventHomeResDto);
             }
             return eventHomeResDtoList;
@@ -102,20 +109,19 @@ public class EventServiceImpl implements EventService {
     @Override
     public EventDetailResDto getEventBySlug(String slug){
         try {
-            Object[] eventObj = (Object[]) eventRepository.findEventsWithMinPriceBySlug(slug);
-            if(eventObj == null){
-                throw new RuntimeException("Event Detail Not Found");
-            }
             EventDetailResDto eventDetailResDto = new EventDetailResDto();
-            eventDetailResDto.setEventTitle((String) eventObj[1]);
-            eventDetailResDto.setImage(GenerateUtil.generateImgUrl((String) eventObj[2]));
-            eventDetailResDto.setVenue((String) eventObj[3]);
-            eventDetailResDto.setDescription((String) eventObj[4]);
-            eventDetailResDto.setStartFromPrice((Integer) eventObj[5]);
-            eventDetailResDto.setSchedule(ConvertUtil.convertToLocalDateTime(eventObj[6]));
-            eventDetailResDto.setCreatedAt(ConvertUtil.convertToLocalDateTime(eventObj[7]));
-            eventDetailResDto.setSlug((String) eventObj[8]);
-            return  eventDetailResDto;
+
+            Object[] eventObj = (Object[]) eventRepository.findEventsWithMinPriceBySlug(slug);
+                eventDetailResDto.setEventTitle((String) eventObj[1]);
+                eventDetailResDto.setImage(GenerateUtil.generateImgUrl((String) eventObj[2]));
+                eventDetailResDto.setVenue((String) eventObj[3]);
+                eventDetailResDto.setDescription((String) eventObj[4]);
+                eventDetailResDto.setStartFromPrice((Integer) eventObj[5]);
+                eventDetailResDto.setSchedule(ConvertUtil.convertToLocalDateTime(eventObj[6]));
+                eventDetailResDto.setCreatedAt(ConvertUtil.convertToLocalDateTime(eventObj[7]));
+                eventDetailResDto.setSlug((String) eventObj[8]);
+                return  eventDetailResDto;
+
         }catch (RuntimeException e){
             throw new RuntimeException(e.getMessage(), e);
         }
@@ -123,11 +129,11 @@ public class EventServiceImpl implements EventService {
 
 
     @Override
-    public Event getEventWithAllCategoryTickets(Long eventId){
-        System.out.println(eventId);
+    public Event getEventWithAllCategoryTickets(String slug){
+        System.out.println(slug);
         try {
-            Event event = eventRepository.findById(eventId).orElseThrow(() -> new RuntimeException("Event not found"));
-            return event;
+//            Event event = eventRepository.findById(slug).orElseThrow(() -> new RuntimeException("Event not found"));
+            return eventRepository.findFirstBySlug(slug).orElseThrow(()-> new RuntimeException("Event not found"));
         }catch (RuntimeException e){
             throw new RuntimeException(e.getMessage(), e);
         }
@@ -148,8 +154,7 @@ public class EventServiceImpl implements EventService {
                 event.setImage(imageUrl);
                 events.add(event);
             }
-            Page<Event> mappingData = new PageImpl<>(events, pageable, response.getTotalElements());
-            return mappingData;
+            return new PageImpl<>(events, pageable, response.getTotalElements());
         } catch (RuntimeException e) {
             throw new RuntimeException(e.getMessage(), e);
         }
@@ -157,8 +162,18 @@ public class EventServiceImpl implements EventService {
 
 
     @Override
-    public Event createEventAdmin(Event event, MultipartFile image){
+    public Event createEventAdmin(EventReqDto eventReqDto){
         try {
+
+            LocalDateTime dateSchedule = LocalDateTime.parse(eventReqDto.getSchedule()); // Spring Boot akan mengonversi ISO 8601 string menjadi LocalDateTime
+            Event event = new Event();
+            event.setEvent_title(eventReqDto.getEvent_title());
+            event.setSchedule(dateSchedule);
+            event.setVenue(eventReqDto.getVenue());
+            event.setSlug(eventReqDto.getSlug());
+            event.setDescription(eventReqDto.getDescription());
+            event.setAdmin_id(eventReqDto.getAdmin_id());
+
               File dir = new File(UPLOAD_DIR);
               if(!dir.exists()){
                   dir.mkdirs();
@@ -175,12 +190,18 @@ public class EventServiceImpl implements EventService {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
             String formattedDateTime = now.format(formatter);
 
-            String extension = ConvertUtil.getFileExtension(image.getOriginalFilename());
+//            if(eventReqDto.getImage() != null){
+
+            // Validasi ekstensi file (contoh: hanya gambar .jpg, .png)
+            String extension = ConvertUtil.getFileExtension(eventReqDto.getImage().getOriginalFilename()).toLowerCase();
+            if (!extension.equals(".jpg") && !extension.equals(".png") && !extension.equals(".jpeg")) {
+                throw new RuntimeException("Invalid file type. Only .jpg, .png, .jpeg are allowed.");
+            }
             String uniqueFilename = "image_" + formattedDateTime + extension; // Buat nama file unik berdasarkan waktu saat ini
 
             // Tulis file gambar ke disk
             Path path = Paths.get(UPLOAD_DIR + uniqueFilename); // Tentukan path untuk menyimpan file
-            Files.write(path, image.getBytes());
+            Files.write(path, eventReqDto.getImage().getBytes());
             event.setImage(uniqueFilename);
             eventRepository.save(event);
             return event;
@@ -191,37 +212,59 @@ public class EventServiceImpl implements EventService {
 
 
     @Override
-    public Event updateEventAdmin(Event event, MultipartFile image, String slug){
+    public Event updateEventAdmin(EventReqDto eventReqDto, String slug){
         try {
+
+            LocalDateTime dateSchedule = LocalDateTime.parse(eventReqDto.getSchedule()); // Spring Boot akan mengonversi ISO 8601 string menjadi LocalDateTime
+            Event event = new Event();
+            event.setEvent_title(eventReqDto.getEvent_title());
+            event.setSchedule(dateSchedule);
+            event.setVenue(eventReqDto.getVenue());
+            event.setSlug(eventReqDto.getSlug());
+            event.setDescription(eventReqDto.getDescription());
+            event.setAdmin_id(eventReqDto.getAdmin_id());
 
             File dir = new File(UPLOAD_DIR);
             if(!dir.exists()){
                 dir.mkdirs();
             }
 
+           Optional<Event> isExistSlug = eventRepository.findFirstBySlug(slug);
 
-            boolean isExistSlug = eventRepository.existsBySlug(event.getSlug());
-            if(!isExistSlug){
-                throw new RuntimeException("Slug is not Exists");
+            if(isExistSlug.isEmpty()){
+                throw new RuntimeException("Data is not Exists");
+            }
+            event.setId(isExistSlug.get().getId());
+
+
+            if(eventReqDto.getImage() != null){
+                LocalDateTime now = LocalDateTime.now();// Ambil waktu saat ini menggunakan LocalDateTime
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
+                String formattedDateTime = now.format(formatter);
+                String extension = ConvertUtil.getFileExtension(eventReqDto.getImage().getOriginalFilename()).toLowerCase();
+                if (!extension.equals(".jpg") && !extension.equals(".png") && !extension.equals(".jpeg")) {
+                    throw new RuntimeException("Invalid file type. Only .jpg, .png, .jpeg are allowed.");
+                }
+
+                //    delete gambar
+                Path oldImagePath = Paths.get(UPLOAD_DIR + event.getImage());
+                Files.deleteIfExists(oldImagePath);
+
+                String uniqueFilename = "image_" + formattedDateTime + extension; // Buat nama file unik berdasarkan waktu saat ini
+                Path path = Paths.get(UPLOAD_DIR + uniqueFilename); // Tentukan path untuk menyimpan file
+                event.setImage(uniqueFilename);
+
+
+                Files.write(path, eventReqDto.getImage().getBytes());
+                event.setImage(uniqueFilename);
             }
 
-            LocalDateTime now = LocalDateTime.now();// Ambil waktu saat ini menggunakan LocalDateTime
-
-            // Format LocalDateTime menjadi string (misalnya 'yyyyMMddHHmmss')
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
-            String formattedDateTime = now.format(formatter);
-
-            String extension = ConvertUtil.getFileExtension(image.getOriginalFilename());
-            String uniqueFilename = "image_" + formattedDateTime + extension; // Buat nama file unik berdasarkan waktu saat ini
-
-            // Tulis file gambar ke disk
-            Path path = Paths.get(UPLOAD_DIR + uniqueFilename); // Tentukan path untuk menyimpan file
-            Files.write(path, image.getBytes());
-            event.setImage(uniqueFilename);
+            event.setCreated_at(isExistSlug.get().getCreated_at());
+            event.setIs_active(true);
 
             eventRepository.save(event);
             return event;
-        }catch (RuntimeException | IOException e){
+        }catch (RuntimeException | IOException e ){
             throw new RuntimeException(e.getMessage(), e);
         }
     }

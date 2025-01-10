@@ -46,9 +46,15 @@ public class GenerateUtil {
     }
 
     public static String generateImgUrl(String image){
-        return  ServletUriComponentsBuilder.fromCurrentContextPath()
-                .path("/uploaded-images/" + image)  // Menambahkan path gambar
-                .toUriString();
+
+        if(image.isEmpty()){
+            return null;
+        }else{
+            return  ServletUriComponentsBuilder.fromCurrentContextPath()
+                    .path("/uploaded-images/" + image)  // Menambahkan path gambar
+                    .toUriString();
+        }
+
 
 
     }

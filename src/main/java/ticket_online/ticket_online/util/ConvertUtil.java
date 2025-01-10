@@ -17,7 +17,8 @@ public class ConvertUtil {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
             return LocalDateTime.parse((String) value, formatter);
         }else {
-            throw new IllegalArgumentException("Value is not a valid type (LocalDateTime, Timestamp, String)");
+            return  null;
+//            throw new IllegalArgumentException("Value is not a valid type (LocalDateTime, Timestamp, String)");
         }
     }
 

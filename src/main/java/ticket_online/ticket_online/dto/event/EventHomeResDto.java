@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class EventHomeResDto {
     private Long id;
+    private String slug;
     private String event_title;
     private String image;
     private LocalDateTime schedule;

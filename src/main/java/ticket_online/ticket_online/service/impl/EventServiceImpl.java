@@ -17,6 +17,7 @@ import ticket_online.ticket_online.dto.ApiResponse;
 import ticket_online.ticket_online.dto.event.EventDetailResDto;
 import ticket_online.ticket_online.dto.event.EventHomeResDto;
 import ticket_online.ticket_online.dto.event.EventReqDto;
+import ticket_online.ticket_online.model.CategoryTicket;
 import ticket_online.ticket_online.model.Event;
 import ticket_online.ticket_online.repository.EventRepository;
 import ticket_online.ticket_online.service.CategoryTicketService;
@@ -35,6 +36,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -64,7 +66,6 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public List<EventHomeResDto> getEventWithMinPrice(Integer total){
-        System.out.println("tes ok");
         try {
             if(total > 960){
                 throw new RuntimeException("Maximum fetch event");
@@ -132,8 +133,8 @@ public class EventServiceImpl implements EventService {
     public Event getEventWithAllCategoryTickets(String slug){
         System.out.println(slug);
         try {
-//            Event event = eventRepository.findById(slug).orElseThrow(() -> new RuntimeException("Event not found"));
-            return eventRepository.findFirstBySlug(slug).orElseThrow(()-> new RuntimeException("Event not found"));
+            return  eventRepository.findFirstBySlugAndIsActiveTrueWithActiveCategoryTickets(slug).orElseThrow(()-> new RuntimeException("Event not found"));
+//            return eventRepository.findFirstBySlugAndIsActiveTrue(slug).orElseThrow(()-> new RuntimeException("Event not found"));
         }catch (RuntimeException e){
             throw new RuntimeException(e.getMessage(), e);
         }
@@ -143,18 +144,25 @@ public class EventServiceImpl implements EventService {
     public Page<Event> getEventPagination(int page, int size){
         try {
             Pageable pageable = PageRequest.of(page,size);
-            Page<Event> response =  eventRepository.getPaginatedEvents(pageable);
+//            Page<Event> response =  eventRepository.getPaginatedEvents(pageable);
+//            Page<Event> response = null;
+            Page<Event> response = eventRepository.findByIsActiveTrueOrderByCreatedAtDesc(pageable);
+            response.getContent().forEach(event -> {
+                event.setImage(GenerateUtil.generateImgUrl(event.getImage()));
+                event.setCategory_tickets(event.getCategory_tickets().stream()
+                        .filter(CategoryTicket::getIsActive).collect(Collectors.toList()));
+            });
 
-            List<Event> events = new ArrayList<>();
 
-            for (Event event : response){
-                String imageUrl = ServletUriComponentsBuilder.fromCurrentContextPath()
-                        .path("/uploaded-images/" + event.getImage())  // Menambahkan path gambar
-                        .toUriString();
-                event.setImage(imageUrl);
-                events.add(event);
-            }
-            return new PageImpl<>(events, pageable, response.getTotalElements());
+//            List<Event> events = new ArrayList<>();
+//            for (Event event : response){
+//                String imageUrl = ServletUriComponentsBuilder.fromCurrentContextPath()
+//                        .path("/uploaded-images/" + event.getImage())  // Menambahkan path gambar
+//                        .toUriString();
+//                event.setImage(imageUrl);
+//                events.add(event);
+//            }
+            return response;
         } catch (RuntimeException e) {
             throw new RuntimeException(e.getMessage(), e);
         }
@@ -229,7 +237,7 @@ public class EventServiceImpl implements EventService {
                 dir.mkdirs();
             }
 
-           Optional<Event> isExistSlug = eventRepository.findFirstBySlug(slug);
+           Optional<Event> isExistSlug = eventRepository.findFirstBySlugAndIsActiveTrue(slug);
 
             if(isExistSlug.isEmpty()){
                 throw new RuntimeException("Data is not Exists");
@@ -259,8 +267,8 @@ public class EventServiceImpl implements EventService {
                 event.setImage(uniqueFilename);
             }
 
-            event.setCreated_at(isExistSlug.get().getCreated_at());
-            event.setIs_active(true);
+            event.setCreatedAt(isExistSlug.get().getCreatedAt());
+            event.setIsActive(true);
 
             eventRepository.save(event);
             return event;
@@ -274,7 +282,7 @@ public class EventServiceImpl implements EventService {
         try {
             Event event = eventRepository.findById(id).orElseThrow(() -> new RuntimeException("Event not found"));
             //  cek lagi jika event sudah ada transaksi maka tidak boleh di hapus
-            event.setIs_active(false);
+            event.setIsActive(false);
             eventRepository.save(event);
             return true;
         }catch (RuntimeException e){
@@ -290,7 +298,7 @@ public class EventServiceImpl implements EventService {
             Event event = eventRepository.findById(eventId).orElseThrow(() -> new RuntimeException("Event not found"));
              // cek lagi jika event sudah ada transaksi maka tidak boleh di hapus
             eventRepository.deleteById(eventId);
-            categoryTicketService.destroyCategoryTicketByEventId(eventId);
+//            categoryTicketService.destroyCategoryTicketByEventId(eventId);
             return  true;
         }catch (RuntimeException e){
             throw new RuntimeException(e.getMessage(), e);

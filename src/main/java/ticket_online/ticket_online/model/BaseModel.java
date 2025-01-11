@@ -20,15 +20,17 @@ public class BaseModel {
     private Long id;
 
     @JsonIgnore
-    private Boolean is_active;
+    @Column(name = "is_active")
+    private Boolean isActive;
 
-    private LocalDateTime created_at;
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
 
     @PrePersist
     public void prePersist(){
-        if(created_at == null){
-            this.created_at = LocalDateTime.now();
-            this.is_active = true;
+        if(createdAt == null){
+            this.createdAt = LocalDateTime.now();
+            this.isActive = true;
         }
     }
 }

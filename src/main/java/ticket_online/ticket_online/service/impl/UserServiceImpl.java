@@ -19,7 +19,7 @@ public class UserServiceImpl implements UserService {
     public boolean removeUser(Long id) {
         try {
             User user = userRepository.findById(id).orElseThrow(() -> new RuntimeException("User not found"));
-            user.setIs_active(false);
+            user.setIsActive(false);
             userRepository.save(user);
             return true;
         }catch (RuntimeException e){

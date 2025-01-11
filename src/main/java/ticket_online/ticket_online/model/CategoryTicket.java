@@ -15,8 +15,10 @@ import java.util.List;
 public class CategoryTicket extends BaseModel {
 
     @Column(name ="event_id")
-    private Long event_id;
-    private String category_name;
+    private Long eventId;
+
+    @Column(name ="category_name")
+    private String categoryName;
     private Integer price;
 
     @Column(name = "quotaTicket")

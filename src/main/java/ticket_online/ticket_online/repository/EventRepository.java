@@ -21,11 +21,18 @@ public interface EventRepository extends JpaRepository<Event, Long> {
 
     boolean existsBySlug(String slug); //query method
 
-    Optional<Event> findFirstBySlug(String slug);
+    Optional<Event> findFirstBySlugAndIsActiveTrue(String slug);
+
+
+    @Query("SELECT e FROM Event e LEFT JOIN FETCH e.category_tickets ct WHERE e.slug = :slug AND e.isActive = true AND ct.isActive = true")
+    Optional<Event> findFirstBySlugAndIsActiveTrueWithActiveCategoryTickets(@Param("slug") String slug);
+
 
     // Query kustom dengan pagination
-    @Query("SELECT e FROM Event e WHERE e.is_active = true ORDER BY e.created_at DESC")
-    Page<Event> getPaginatedEvents(Pageable pageable);
+//    @Query("SELECT e FROM Event e WHERE e.is_active = true ORDER BY e.created_at DESC")
+//    Page<Event> getPaginatedEvents(Pageable pageable);
+
+    Page<Event> findByIsActiveTrueOrderByCreatedAtDesc(Pageable pageable);
 
     @Query(value = "SELECT e.id,e.event_title, e.image, e.description, max(ct.price) as start_from, e.schedule\n" +
             "            FROM events e\n" +

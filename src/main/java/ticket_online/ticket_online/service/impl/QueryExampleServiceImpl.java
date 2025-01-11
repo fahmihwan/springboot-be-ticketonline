@@ -167,7 +167,8 @@ public class QueryExampleServiceImpl implements QueryExampleService {
 
     public Page<Event> getPaginationRepository(int page, int size){
         Pageable pageable = PageRequest.of(page,size);
-        return eventRepository.getPaginatedEvents(pageable);
+        return null;
+//        return eventRepository.getPaginatedEvents(pageable);
     }
 
     //query raw pakai JDBC easy to use

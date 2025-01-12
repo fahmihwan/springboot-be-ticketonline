@@ -134,7 +134,6 @@ public class EventServiceImpl implements EventService {
         System.out.println(slug);
         try {
             return  eventRepository.findFirstBySlugAndIsActiveTrueWithActiveCategoryTickets(slug).orElseThrow(()-> new RuntimeException("Event not found"));
-//            return eventRepository.findFirstBySlugAndIsActiveTrue(slug).orElseThrow(()-> new RuntimeException("Event not found"));
         }catch (RuntimeException e){
             throw new RuntimeException(e.getMessage(), e);
         }
@@ -144,8 +143,6 @@ public class EventServiceImpl implements EventService {
     public Page<Event> getEventPagination(int page, int size){
         try {
             Pageable pageable = PageRequest.of(page,size);
-//            Page<Event> response =  eventRepository.getPaginatedEvents(pageable);
-//            Page<Event> response = null;
             Page<Event> response = eventRepository.findByIsActiveTrueOrderByCreatedAtDesc(pageable);
             response.getContent().forEach(event -> {
                 event.setImage(GenerateUtil.generateImgUrl(event.getImage()));
@@ -153,15 +150,6 @@ public class EventServiceImpl implements EventService {
                         .filter(CategoryTicket::getIsActive).collect(Collectors.toList()));
             });
 
-
-//            List<Event> events = new ArrayList<>();
-//            for (Event event : response){
-//                String imageUrl = ServletUriComponentsBuilder.fromCurrentContextPath()
-//                        .path("/uploaded-images/" + event.getImage())  // Menambahkan path gambar
-//                        .toUriString();
-//                event.setImage(imageUrl);
-//                events.add(event);
-//            }
             return response;
         } catch (RuntimeException e) {
             throw new RuntimeException(e.getMessage(), e);
@@ -170,7 +158,7 @@ public class EventServiceImpl implements EventService {
 
 
     @Override
-    public Event createEventAdmin(EventReqDto eventReqDto){
+    public Event createEventAdmin(EventReqDto eventReqDto, MultipartFile image){
         try {
 
             LocalDateTime dateSchedule = LocalDateTime.parse(eventReqDto.getSchedule()); // Spring Boot akan mengonversi ISO 8601 string menjadi LocalDateTime
@@ -198,19 +186,19 @@ public class EventServiceImpl implements EventService {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
             String formattedDateTime = now.format(formatter);
 
-//            if(eventReqDto.getImage() != null){
+            if(!image.isEmpty()) {
+                // Validasi ekstensi file (contoh: hanya gambar .jpg, .png)
+                String extension = ConvertUtil.getFileExtension(image.getOriginalFilename()).toLowerCase();
+                if (!extension.equals(".jpg") && !extension.equals(".png") && !extension.equals(".jpeg")) {
+                    throw new RuntimeException("Invalid file type. Only .jpg, .png, .jpeg are allowed.");
+                }
+                String uniqueFilename = "image_" + formattedDateTime + extension; // Buat nama file unik berdasarkan waktu saat ini
 
-            // Validasi ekstensi file (contoh: hanya gambar .jpg, .png)
-            String extension = ConvertUtil.getFileExtension(eventReqDto.getImage().getOriginalFilename()).toLowerCase();
-            if (!extension.equals(".jpg") && !extension.equals(".png") && !extension.equals(".jpeg")) {
-                throw new RuntimeException("Invalid file type. Only .jpg, .png, .jpeg are allowed.");
+                // Tulis file gambar ke disk
+                Path path = Paths.get(UPLOAD_DIR + uniqueFilename); // Tentukan path untuk menyimpan file
+                Files.write(path, image.getBytes());
+                event.setImage(uniqueFilename);
             }
-            String uniqueFilename = "image_" + formattedDateTime + extension; // Buat nama file unik berdasarkan waktu saat ini
-
-            // Tulis file gambar ke disk
-            Path path = Paths.get(UPLOAD_DIR + uniqueFilename); // Tentukan path untuk menyimpan file
-            Files.write(path, eventReqDto.getImage().getBytes());
-            event.setImage(uniqueFilename);
             eventRepository.save(event);
             return event;
         }catch (RuntimeException | IOException e){
@@ -220,17 +208,10 @@ public class EventServiceImpl implements EventService {
 
 
     @Override
-    public Event updateEventAdmin(EventReqDto eventReqDto, String slug){
+    public Event updateEventAdmin(EventReqDto eventReqDto, String slug, MultipartFile image){
         try {
 
-            LocalDateTime dateSchedule = LocalDateTime.parse(eventReqDto.getSchedule()); // Spring Boot akan mengonversi ISO 8601 string menjadi LocalDateTime
-            Event event = new Event();
-            event.setEvent_title(eventReqDto.getEvent_title());
-            event.setSchedule(dateSchedule);
-            event.setVenue(eventReqDto.getVenue());
-            event.setSlug(eventReqDto.getSlug());
-            event.setDescription(eventReqDto.getDescription());
-            event.setAdmin_id(eventReqDto.getAdmin_id());
+
 
             File dir = new File(UPLOAD_DIR);
             if(!dir.exists()){
@@ -238,18 +219,27 @@ public class EventServiceImpl implements EventService {
             }
 
            Optional<Event> isExistSlug = eventRepository.findFirstBySlugAndIsActiveTrue(slug);
-
             if(isExistSlug.isEmpty()){
                 throw new RuntimeException("Data is not Exists");
             }
+
+            LocalDateTime dateSchedule = LocalDateTime.parse(eventReqDto.getSchedule()); // Spring Boot akan mengonversi ISO 8601 string menjadi LocalDateTime
+            Event event = new Event();
             event.setId(isExistSlug.get().getId());
+            event.setEvent_title(eventReqDto.getEvent_title());
+            event.setSchedule(dateSchedule);
+            event.setVenue(eventReqDto.getVenue());
+            event.setSlug(eventReqDto.getSlug());
+            event.setDescription(eventReqDto.getDescription());
+            event.setAdmin_id(eventReqDto.getAdmin_id());
+            event.setCreatedAt(isExistSlug.get().getCreatedAt());
+            event.setIsActive(true);
 
-
-            if(eventReqDto.getImage() != null){
+            if(image != null){
                 LocalDateTime now = LocalDateTime.now();// Ambil waktu saat ini menggunakan LocalDateTime
                 DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
                 String formattedDateTime = now.format(formatter);
-                String extension = ConvertUtil.getFileExtension(eventReqDto.getImage().getOriginalFilename()).toLowerCase();
+                String extension = ConvertUtil.getFileExtension(image.getOriginalFilename()).toLowerCase();
                 if (!extension.equals(".jpg") && !extension.equals(".png") && !extension.equals(".jpeg")) {
                     throw new RuntimeException("Invalid file type. Only .jpg, .png, .jpeg are allowed.");
                 }
@@ -261,18 +251,16 @@ public class EventServiceImpl implements EventService {
                 String uniqueFilename = "image_" + formattedDateTime + extension; // Buat nama file unik berdasarkan waktu saat ini
                 Path path = Paths.get(UPLOAD_DIR + uniqueFilename); // Tentukan path untuk menyimpan file
                 event.setImage(uniqueFilename);
-
-
-                Files.write(path, eventReqDto.getImage().getBytes());
+                Files.write(path, image.getBytes());
                 event.setImage(uniqueFilename);
+            }else{
+                event.setImage(isExistSlug.get().getImage());
             }
 
-            event.setCreatedAt(isExistSlug.get().getCreatedAt());
-            event.setIsActive(true);
 
             eventRepository.save(event);
             return event;
-        }catch (RuntimeException | IOException e ){
+        }catch (RuntimeException | IOException e  ){
             throw new RuntimeException(e.getMessage(), e);
         }
     }

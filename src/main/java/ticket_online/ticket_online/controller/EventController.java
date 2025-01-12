@@ -6,6 +6,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import ticket_online.ticket_online.dto.ApiResponse;
 import ticket_online.ticket_online.dto.event.EventDetailResDto;
 import ticket_online.ticket_online.dto.event.EventHomeResDto;
@@ -70,10 +71,11 @@ public class EventController {
 
 
     @PostMapping
-    public ResponseEntity<ApiResponse<Event>> storeEventAdmin(@ModelAttribute EventReqDto eventReqDto){
+    public ResponseEntity<ApiResponse<Event>> storeEventAdmin(@ModelAttribute EventReqDto eventReqDto,
+                                                              @RequestParam(name = "image", required = false) MultipartFile image){
 
         try {
-            Event response = eventService.createEventAdmin(eventReqDto);
+            Event response = eventService.createEventAdmin(eventReqDto, image);
             return ResponseEntity.ok(new ApiResponse<>(true, "Event has Created", response));
         }catch (RuntimeException e){
             return ResponseEntity.ok(new ApiResponse<>(false, e.getMessage(), null));
@@ -81,13 +83,15 @@ public class EventController {
 
     }
 
+
     @PutMapping("/{slug}")
-    public ResponseEntity<ApiResponse<Event>> updateEventAdmin(@ModelAttribute EventReqDto eventReqDto, @PathVariable String slug){
+    public ResponseEntity<ApiResponse<Event>> updateEventAdmin(@ModelAttribute EventReqDto eventReqDto,
+                                                               @RequestParam(name = "image", required = false) MultipartFile image,
+                                                               @PathVariable String slug){
 
-        try {
-
-
-            Event response = eventService.updateEventAdmin(eventReqDto, slug);
+        try{
+            System.out.println(image);
+            Event response = eventService.updateEventAdmin(eventReqDto, slug, image);
             return ResponseEntity.status(HttpStatus.CREATED).body(new ApiResponse<>(true, "Event has updated ", response));
         }catch (RuntimeException e){
             return ResponseEntity.ok(new ApiResponse<>(false, e.getMessage(), null));

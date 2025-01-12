@@ -22,9 +22,9 @@ public interface EventService {
 
     public Page<Event> getEventPagination(int page, int size);
 
-    public Event createEventAdmin(EventReqDto eventReqDto);
+    public Event createEventAdmin(EventReqDto eventReqDto, MultipartFile image);
 
-    public Event updateEventAdmin(EventReqDto eventReqDto, String slug);
+    public Event updateEventAdmin(EventReqDto eventReqDto, String slug, MultipartFile image);
 
     public Boolean removeEventAdmin(Long id);
 

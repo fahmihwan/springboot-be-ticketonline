@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
 public class EventReqDto {
 
     private String event_title;
-    private MultipartFile image;
+//    private MultipartFile image;
     private String schedule;
     private String venue;
 

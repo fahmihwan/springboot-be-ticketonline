@@ -47,7 +47,7 @@ public class GenerateUtil {
 
     public static String generateImgUrl(String image){
 
-        if(image.isEmpty()){
+        if(image == null){
             return null;
         }else{
             return  ServletUriComponentsBuilder.fromCurrentContextPath()

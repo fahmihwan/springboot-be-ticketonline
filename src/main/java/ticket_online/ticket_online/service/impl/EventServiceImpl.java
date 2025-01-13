@@ -19,6 +19,7 @@ import ticket_online.ticket_online.dto.event.EventHomeResDto;
 import ticket_online.ticket_online.dto.event.EventReqDto;
 import ticket_online.ticket_online.model.CategoryTicket;
 import ticket_online.ticket_online.model.Event;
+import ticket_online.ticket_online.model.LineUp;
 import ticket_online.ticket_online.repository.EventRepository;
 import ticket_online.ticket_online.service.CategoryTicketService;
 import ticket_online.ticket_online.service.EventService;
@@ -131,7 +132,6 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public Event getEventWithAllCategoryTickets(String slug){
-        System.out.println(slug);
         try {
             return  eventRepository.findFirstBySlugAndIsActiveTrueWithActiveCategoryTickets(slug).orElseThrow(()-> new RuntimeException("Event not found"));
         }catch (RuntimeException e){
@@ -146,8 +146,8 @@ public class EventServiceImpl implements EventService {
             Page<Event> response = eventRepository.findByIsActiveTrueOrderByCreatedAtDesc(pageable);
             response.getContent().forEach(event -> {
                 event.setImage(GenerateUtil.generateImgUrl(event.getImage()));
-                event.setCategory_tickets(event.getCategory_tickets().stream()
-                        .filter(CategoryTicket::getIsActive).collect(Collectors.toList()));
+                event.setCategory_tickets(event.getCategory_tickets().stream().filter(CategoryTicket::getIsActive).collect(Collectors.toList()));
+                event.setListLineUps(event.getListLineUps().stream().filter(LineUp::getIsActive).collect(Collectors.toList()));
             });
 
             return response;

@@ -39,4 +39,7 @@ public class Event extends BaseModel{
     private List<CategoryTicket> category_tickets = new ArrayList<CategoryTicket>();
 
 
+    @OneToMany()
+    @JoinColumn(name = "event_id")
+    private List<LineUp> listLineUps = new ArrayList<>();
 }

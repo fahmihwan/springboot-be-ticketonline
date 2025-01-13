@@ -60,7 +60,6 @@ public class EventController {
 
     @GetMapping("/{slug}/with-category-tickets")
     public ResponseEntity<ApiResponse<Event>> getEventWithAllCategoryTickets(@PathVariable String slug){
-        System.out.println(slug);
         try {
             Event response = eventService.getEventWithAllCategoryTickets(slug);
             return ResponseEntity.ok(new ApiResponse<>(true, "Event Detail retrieved", response));

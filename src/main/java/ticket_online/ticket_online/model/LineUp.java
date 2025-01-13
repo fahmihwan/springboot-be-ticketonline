@@ -9,7 +9,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 @Entity
-@Table(name = "events")
+@Table(name = "line_up")
 @ToString
 @Getter
 @Setter
@@ -17,4 +17,8 @@ public class LineUp extends BaseModel{
 
     @Column(name = "talent_name")
     private String talentName;
+
+    @Column(name ="event_id")
+    private Long eventId;
+
 }

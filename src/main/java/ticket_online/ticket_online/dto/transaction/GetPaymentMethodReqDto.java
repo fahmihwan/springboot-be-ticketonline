@@ -9,6 +9,8 @@ import lombok.ToString;
 @ToString
 public class GetPaymentMethodReqDto {
     private Integer amount;
+
+
 }
 
 

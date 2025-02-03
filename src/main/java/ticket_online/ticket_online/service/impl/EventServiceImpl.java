@@ -57,7 +57,6 @@ public class EventServiceImpl implements EventService {
     private static String UPLOAD_DIR = "uploaded-images/";
 
 
-
     static {
         File directory = new File(UPLOAD_DIR);
         if (!directory.exists()) {

@@ -23,6 +23,9 @@ public class CategoryTicket extends BaseModel {
 
     @Column(name = "quotaTicket")
     private Integer quotaTicket;
+
+    @Column(name = "ticket_sold")
+    private Integer ticketsSold;
     private String description;
 
 }

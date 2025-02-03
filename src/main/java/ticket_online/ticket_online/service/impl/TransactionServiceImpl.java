@@ -1,17 +1,23 @@
 package ticket_online.ticket_online.service.impl;
 
+import org.springframework.aop.scope.ScopedProxyUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import ticket_online.ticket_online.dto.transaction.CheckoutReqDto;
+import org.springframework.stereotype.Service;
+import ticket_online.ticket_online.dto.transaction.AddCartTicketReqDto;
 import ticket_online.ticket_online.model.DetailTransaction;
+import ticket_online.ticket_online.model.Event;
 import ticket_online.ticket_online.model.Transaction;
 import ticket_online.ticket_online.model.Visitor;
 import ticket_online.ticket_online.repository.DetailTransactionRepository;
+import ticket_online.ticket_online.repository.EventRepository;
 import ticket_online.ticket_online.repository.TransactionRepository;
 import ticket_online.ticket_online.repository.VisitorRepository;
 import ticket_online.ticket_online.service.TransactionService;
 
 import java.util.List;
+import java.util.Optional;
 
+@Service
 public class TransactionServiceImpl implements TransactionService {
 
     @Autowired
@@ -19,20 +25,22 @@ public class TransactionServiceImpl implements TransactionService {
     private DetailTransactionRepository detailTransactionRepository;
     private VisitorRepository visitorRepository;
 
-    public Transaction checkoutTicket(CheckoutReqDto checkoutReqDto){
+    private EventRepository eventRepository;
 
-        List<Visitor> visitorReq = checkoutReqDto.getVisitors();
-        List<DetailTransaction> detailTransactionReq = checkoutReqDto.getDetailTransactions();
+    public DetailTransaction createCartTicket(AddCartTicketReqDto addCartTicketReqDto){
+
+        System.out.println(addCartTicketReqDto);
 
         try {
-            if(visitorReq.toArray().length <= 0){
-                throw new RuntimeException("visitor doesnt exists");
+            if(addCartTicketReqDto.getDetailTransactions().isEmpty()){
+                Optional<Event> event = eventRepository.findFirstBySlugAndIsActiveTrue(addCartTicketReqDto.getSlug());
             }
 
-            if(detailTransactionReq.toArray().length <= 0){
-                throw new RuntimeException("detail transaction doesnt exist");
-            }
-
+//            if(event.isPresent()){
+//                System.out.println(event);
+//
+//
+//            }
 
         } catch (RuntimeException e) {
             System.out.println(e.getMessage());

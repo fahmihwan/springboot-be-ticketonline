@@ -11,9 +11,17 @@ import ticket_online.ticket_online.model.CategoryTicket;
 import ticket_online.ticket_online.model.Event;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface CategoryTicketRepository extends JpaRepository<CategoryTicket,Long> {
+
+
+//    Optional<Event> findFirstBySlugAndIsActiveTrue(String slug);
+
+    Optional<CategoryTicket> findFirstByIdAndIsActiveTrue(Long eventId);
+
+//    int updateQuotaTicketById(Long id, Integer quotaTicket);
 
     //    @Modifying //@Modifying: Menandakan bahwa query ini adalah query yang mengubah data (misalnya, INSERT, UPDATE, atau DELETE).
 //    @Modifying

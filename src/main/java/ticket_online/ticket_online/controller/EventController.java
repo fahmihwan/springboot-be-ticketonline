@@ -27,9 +27,10 @@ public class EventController {
 
     @GetMapping("/{total}/events")
     public ResponseEntity<ApiResponse<List<EventHomeResDto>>> getEventHome(@PathVariable Integer total){
+
         try {
             List<EventHomeResDto> response =  eventService.getEventWithMinPrice(total);
-            return ResponseEntity.ok(new ApiResponse<>(true, "Event retrieved successfully", response));
+            return ResponseEntity.ok(new ApiResponse<>(true, "Event retrieved successfully ", response));
         }catch (RuntimeException e){
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse<>(false, e.getMessage(), null));
         }

@@ -1,6 +1,7 @@
 package ticket_online.ticket_online.model;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
@@ -23,6 +24,9 @@ public class Cart extends BaseModel{
 
     @Column(name = "category_ticket_id")
     private Long categoryTicketid;
+
+    @Column(name ="user_id")
+    private Long userId;
 
     private Integer total;
 }

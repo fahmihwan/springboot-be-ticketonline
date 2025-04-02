@@ -4,10 +4,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import ticket_online.ticket_online.dto.ApiResponse;
-import ticket_online.ticket_online.dto.transaction.AddCartTicketReqDto;
+import ticket_online.ticket_online.dto.cart.AddCartTicketReqDto;
 import ticket_online.ticket_online.dto.transaction.GetPaymentMethodReqDto;
-import ticket_online.ticket_online.model.DetailTransaction;
-import ticket_online.ticket_online.model.LineUp;
 import ticket_online.ticket_online.service.PaymentGatewayService;
 import ticket_online.ticket_online.service.TransactionService;
 
@@ -22,16 +20,6 @@ public class TransactionController {
 
     @Autowired
     private TransactionService transactionService;
-
-    @PostMapping("/cart-ticket")
-    public ResponseEntity<ApiResponse<DetailTransaction>> storeDetailTransaction(@RequestBody AddCartTicketReqDto addCartTicketReqDto){
-        try {
-            DetailTransaction response =  transactionService.createCartTicket(addCartTicketReqDto);
-            return ResponseEntity.ok(new ApiResponse<>(true, "Line up created successfully", response));
-        }catch (RuntimeException e){
-            return  ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse<>(false, e.getMessage(), null));
-        }
-    }
 
 
     @PostMapping("/paymentgateway-get-payment-method")

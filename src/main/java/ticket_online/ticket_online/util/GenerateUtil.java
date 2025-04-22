@@ -4,6 +4,8 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import ticket_online.ticket_online.dto.ApiResponse;
 
 import java.security.MessageDigest;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 public class GenerateUtil {
 
@@ -57,5 +59,19 @@ public class GenerateUtil {
 
 
 
+    }
+
+    public static String generateMerchantOrderId(){
+        LocalDateTime now = LocalDateTime.now();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyMMddHHmmss");
+        String formattedDate = now.format(formatter);
+        return formattedDate;
+    }
+
+    public static String transactionCode(){
+        LocalDateTime now = LocalDateTime.now();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyMMddHHmmss");
+        String formattedDate = "TR"+ now.format(formatter);
+        return formattedDate;
     }
 }

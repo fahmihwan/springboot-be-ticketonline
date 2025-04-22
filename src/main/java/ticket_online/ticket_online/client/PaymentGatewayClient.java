@@ -1,11 +1,16 @@
 package ticket_online.ticket_online.client;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
+
 import org.springframework.web.client.RestTemplate;
 
+import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 
 @Component
@@ -27,7 +32,7 @@ public class PaymentGatewayClient {
         return responseEntity.getBody();
     }
 
-    public Map<String,Object> transactionRequest(Map<String, Object> params){
+    public Map<String,Object> transactionRequest(Map<String, Object> params)  {
 
         String url = "https://sandbox.duitku.com/webapi/api/merchant/v2/inquiry";
 
@@ -36,12 +41,11 @@ public class PaymentGatewayClient {
         headers.setContentType(MediaType.APPLICATION_JSON);
         HttpEntity<Object> entity = new HttpEntity<>(params, headers);
 
-        // Melakukan POST request ke API Payment Gateway
         ResponseEntity<Map<String, Object>> responseEntity = restTemplate.exchange(
                 url, HttpMethod.POST, entity, new ParameterizedTypeReference<Map<String, Object>>() {}
         );
+
         return responseEntity.getBody();
+
     }
-
-
 }

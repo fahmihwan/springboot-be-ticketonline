@@ -57,7 +57,7 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
         String merchantCode = MERCHANT_CODE;
         String apiKey = API_KEY;
         int paymentAmount = 40000;
-        String paymentMethod = "VC";
+        String paymentMethod = "BC";
         int merchantOrderId = 121212; //dari merchant, unik
         String productDetails = "Tes pembayaran menggunakan Duitku";
         String email = "fahmiiwan86@gmail.com";
@@ -131,12 +131,15 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
         params.put("returnUrls",returnUrl);
         params.put("signature", signature);
         params.put("expiryPeriod", expiryPeriod);
+        System.out.println(params);
 
         try {
             Map<String, Object> response = paymentGatewayClient.transactionRequest(params);
             return new ApiResponse<>(true, "Transaction Request retrieved successfully", response);
         }catch (RuntimeException e) {
             return new ApiResponse<>(true, e.getMessage(), null);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 

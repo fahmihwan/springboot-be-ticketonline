@@ -2,13 +2,20 @@ package ticket_online.ticket_online.service.impl;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ticket_online.ticket_online.dto.cart.AddCartTicketReqDto;
+import ticket_online.ticket_online.dto.cart.CartResDto;
+import ticket_online.ticket_online.dto.event.EventHomeResDto;
 import ticket_online.ticket_online.model.Cart;
 import ticket_online.ticket_online.model.CategoryTicket;
+import ticket_online.ticket_online.model.Event;
 import ticket_online.ticket_online.repository.*;
 import ticket_online.ticket_online.service.CartService;
 
+import java.util.List;
 import java.util.Optional;
 
 @Slf4j
@@ -22,9 +29,29 @@ public class CartServiceImpl implements CartService {
     @Autowired
     private CartRepository cartRepository;
 
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
+    @Override
+    public List<CartResDto> findCartUser(Long userId){
+        String sql = "select c.id, ct.category_name, ct.price,c.total, c.category_ticket_id from carts c\n" +
+                "inner join category_tickets ct on ct.id = c.category_ticket_id \n" +
+                "where c.user_id = ? and c.is_active=true ";
+        List<CartResDto> data = jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(CartResDto.class), userId);
+        System.out.println(data);
+        return  data;
+    }
+
+
+    @Transactional
+    @Override
     public AddCartTicketReqDto createCartTicket(AddCartTicketReqDto addCartTicketReqDto){
         try {
+
+            List<Cart> havingCart = cartRepository.findByUserId(1L);
+            if(havingCart.size() > 0){
+                cartRepository.deleteByUserId(1L);
+            }
 
             for (int i = 0; i < addCartTicketReqDto.getDetailTransactions().size(); i++) {
                 AddCartTicketReqDto.DetailTicketReqDto reqCategoryTicket = addCartTicketReqDto.getDetailTransactions().get(i);
@@ -37,12 +64,9 @@ public class CartServiceImpl implements CartService {
 
 
                 if(categoryTicket.get().getQuotaTicket() >= reqCategoryTicket.getTotal()) {
-                    Integer qty = categoryTicket.get().getQuotaTicket() - reqCategoryTicket.getTotal();
+//                    Integer qty = categoryTicket.get().getQuotaTicket() - reqCategoryTicket.getTotal();
 
                     CategoryTicket categoryTicket1 = categoryTicket.get();
-                    categoryTicket1.setQuotaTicket(qty);
-                    categoryTicketRepository.saveAndFlush(categoryTicket1);
-
                     Cart cart = new Cart();
                     cart.setCategoryTicketid(categoryTicket1.getId());
                     cart.setUserId(1L);
@@ -50,17 +74,22 @@ public class CartServiceImpl implements CartService {
                     cartRepository.save(cart);
                 }
             }
-
-
             return addCartTicketReqDto;
 
         }catch (Exception e){
             System.out.println(e.getMessage());
             throw new RuntimeException(e.getMessage(), e);
         }
-
     }
 
-
+    @Override
+    public Boolean destroyCartByUserId(Long userId){
+        try {
+            cartRepository.deleteByUserId(userId);
+            return  true;
+        }catch (RuntimeException e){
+            throw new RuntimeException(e.getMessage(), e);
+        }
+    }
 
 }

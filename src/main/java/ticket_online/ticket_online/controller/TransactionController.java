@@ -5,7 +5,9 @@ import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import ticket_online.ticket_online.dto.ApiResponse;
 import ticket_online.ticket_online.dto.cart.AddCartTicketReqDto;
+import ticket_online.ticket_online.dto.transaction.CheckoutReqDto;
 import ticket_online.ticket_online.dto.transaction.GetPaymentMethodReqDto;
+import ticket_online.ticket_online.model.Event;
 import ticket_online.ticket_online.service.PaymentGatewayService;
 import ticket_online.ticket_online.service.TransactionService;
 
@@ -21,6 +23,25 @@ public class TransactionController {
     @Autowired
     private TransactionService transactionService;
 
+    @PostMapping("/checkout")
+//    public ResponseEntity<ApiResponse<CheckoutReqDto>> checkout(@RequestBody CheckoutReqDto checkoutReqDto){
+    public ResponseEntity<ApiResponse<?>> checkout(@RequestBody CheckoutReqDto checkoutReqDto){
+        try {
+
+            Map<String,Object> response = transactionService.checkout(checkoutReqDto);
+            return ResponseEntity.ok(new ApiResponse<>(true, "Event Detail retrieved", response));
+        }catch (RuntimeException e){
+            return ResponseEntity.ok(new ApiResponse<>(false, e.getMessage(), null));
+        }
+
+
+//        try {
+//            Event response = eventService.createEventAdmin(eventReqDto, image);
+//            return ResponseEntity.ok(new ApiResponse<>(true, "Event has Created", response));
+//        }catch (RuntimeException e){
+//            return ResponseEntity.ok(new ApiResponse<>(false, e.getMessage(), null));
+//        }
+    }
 
     @PostMapping("/paymentgateway-get-payment-method")
     public ResponseEntity<ApiResponse<Map<String,Object>>> getPaymentMethod(@RequestBody GetPaymentMethodReqDto request) {

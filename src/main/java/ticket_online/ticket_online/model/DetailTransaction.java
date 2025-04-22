@@ -18,10 +18,17 @@ public class DetailTransaction extends BaseModel {
     private Integer total;
 
     @Column(name = "user_id")
-    private Long user_id;
+    private Long userIid;
 
     @Column(name = "transaction_id")
     private Long transactionId;
+
+    @Column(name ="visitor_id")
+    private Long visitorId;
+
+    @Column(name = "category_ticket_id")
+    private Long categoryTicketId;
+
 
 
 }

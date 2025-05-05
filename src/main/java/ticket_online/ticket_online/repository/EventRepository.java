@@ -23,6 +23,7 @@ public interface EventRepository extends JpaRepository<Event, Long> {
 
     Optional<Event> findFirstBySlugAndIsActiveTrue(String slug);
 
+    Optional<Event> findFirstByIdAndIsActiveTrue(Long id);
 
     @Query("SELECT e FROM Event e LEFT JOIN FETCH e.category_tickets ct WHERE e.slug = :slug AND e.isActive = true AND ct.isActive = true")
     Optional<Event> findFirstBySlugAndIsActiveTrueWithActiveCategoryTickets(@Param("slug") String slug);

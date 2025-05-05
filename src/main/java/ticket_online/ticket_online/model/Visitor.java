@@ -35,6 +35,9 @@ public class Visitor extends BaseModel{
     private String phoneNumber;
     private String address;
 
+    @Column(name = "is_same_primary_visitor")
+    private Long isSamePrimaryVisitor;
+
 
 
 //    private String category_name;

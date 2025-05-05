@@ -5,10 +5,12 @@ import ticket_online.ticket_online.dto.ApiResponse;
 import ticket_online.ticket_online.dto.event.EventHomeResDto;
 import ticket_online.ticket_online.dto.event.EventResDto;
 import ticket_online.ticket_online.model.Event;
+import ticket_online.ticket_online.model.Transaction;
 import ticket_online.ticket_online.model.User;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public interface QueryExampleService {
 
@@ -39,6 +41,6 @@ public interface QueryExampleService {
 
     public List<Event> getEvents();
 
-
+    public Optional<Transaction> findAllByTransactionCode();
 
 }

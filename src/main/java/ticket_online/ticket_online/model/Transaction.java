@@ -1,8 +1,6 @@
 package ticket_online.ticket_online.model;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -50,4 +48,29 @@ public class Transaction extends BaseModel{
 
     @Column(name = "user_id")
     private Long userId;
+
+    @Column(name = "payment_method")
+    private String paymentMethod;
+
+    @Column(name = "expiry_period")
+    private Integer expiryPeriod;
+
+    @ManyToOne
+    @JoinColumn(name = "event_id")
+    private Event eventId;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "transaction_status")
+    private TransactionStatus transactionStatus;
+
+
+
+    public enum TransactionStatus{
+        PENDING,
+        SUCCESS,
+        FAILED,
+        CANCELLED
+    }
+
+
 }

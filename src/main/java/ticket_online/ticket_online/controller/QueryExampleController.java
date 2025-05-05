@@ -9,6 +9,7 @@ import ticket_online.ticket_online.dto.ApiResponse;
 import ticket_online.ticket_online.dto.event.EventHomeResDto;
 import ticket_online.ticket_online.dto.event.EventResDto;
 import ticket_online.ticket_online.model.Event;
+import ticket_online.ticket_online.model.Transaction;
 import ticket_online.ticket_online.model.User;
 import ticket_online.ticket_online.repository.EventRepository;
 import ticket_online.ticket_online.service.QueryExampleService;
@@ -16,6 +17,7 @@ import ticket_online.ticket_online.service.impl.QueryExampleServiceImpl;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/example")
@@ -99,12 +101,27 @@ public class QueryExampleController {
         return  ResponseEntity.ok(response);
     }
 
-
-
     @GetMapping("/get-only-event-repo")
     public ResponseEntity<List<Event>> getOnlyEventRepo(){
         return  ResponseEntity.ok(queryExampleService.getEvents());
     }
+
+
+
+
+
+    @GetMapping("/find-all-by-transactioncode")
+    public ResponseEntity<ApiResponse<Optional<Transaction>>> getByTransactionCode(){
+
+        try {
+            Optional<Transaction> transaction = queryExampleService.findAllByTransactionCode();
+            return ResponseEntity.ok(new ApiResponse<>(true,"query", transaction));
+        }catch (RuntimeException e){
+            return ResponseEntity.ok(new ApiResponse<>(false, e.getMessage(), null));
+        }
+    }
+
+
 
 
 

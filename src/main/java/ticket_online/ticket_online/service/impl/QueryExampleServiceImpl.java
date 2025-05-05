@@ -18,8 +18,10 @@ import ticket_online.ticket_online.dto.ApiResponse;
 import ticket_online.ticket_online.dto.event.EventHomeResDto;
 import ticket_online.ticket_online.dto.event.EventResDto;
 import ticket_online.ticket_online.model.Event;
+import ticket_online.ticket_online.model.Transaction;
 import ticket_online.ticket_online.model.User;
 import ticket_online.ticket_online.repository.EventRepository;
+import ticket_online.ticket_online.repository.TransactionRepository;
 import ticket_online.ticket_online.repository.UserRepository;
 import ticket_online.ticket_online.service.QueryExampleService;
 import ticket_online.ticket_online.util.ConvertUtil;
@@ -45,6 +47,9 @@ public class QueryExampleServiceImpl implements QueryExampleService {
     private JdbcTemplate jdbcTemplate;
 
 
+    @Autowired
+    private TransactionRepository transactionRepository;
+
     // Get Data from External API (https://jsonplaceholder.typicode.com/)
 //    getAPI
     public String getApiJSONPlaceHolder() {
@@ -60,52 +65,51 @@ public class QueryExampleServiceImpl implements QueryExampleService {
     }
 
 
-
     //pakai ORM
-    public List<Event> getEventWithCategories(){
+    public List<Event> getEventWithCategories() {
         return eventRepository.findAll();
     }
 
     //pakai DTO
-    public List<EventHomeResDto> getAllEventUseRepo(){
-       List<Object[]> results = eventRepository.getAllEventsWithMinPrice();
+    public List<EventHomeResDto> getAllEventUseRepo() {
+        List<Object[]> results = eventRepository.getAllEventsWithMinPrice();
 
         List<EventHomeResDto> homeResDtos = new ArrayList<>();
 
         for (Object[] result : results) {
-              Long id = (Long) result[0];
-              String event_title = (String) result[1];
-              String image = (String) result[2];
-              String description = (String) result[3];
-              Integer startFrom = (Integer) result[4];
-              Timestamp schedule = (Timestamp) result[5];
-              System.out.println(schedule);
+            Long id = (Long) result[0];
+            String event_title = (String) result[1];
+            String image = (String) result[2];
+            String description = (String) result[3];
+            Integer startFrom = (Integer) result[4];
+            Timestamp schedule = (Timestamp) result[5];
+            System.out.println(schedule);
 
-              final EventHomeResDto eventHomeResDto = new EventHomeResDto();
-              eventHomeResDto.setId(id);
-              eventHomeResDto.setEvent_title(event_title);
-              eventHomeResDto.setImage(image);
-              eventHomeResDto.setDescription(description);
-              eventHomeResDto.setStart_from(startFrom);
-              eventHomeResDto.setSchedule(schedule.toLocalDateTime());
-              homeResDtos.add(eventHomeResDto);
+            final EventHomeResDto eventHomeResDto = new EventHomeResDto();
+            eventHomeResDto.setId(id);
+            eventHomeResDto.setEvent_title(event_title);
+            eventHomeResDto.setImage(image);
+            eventHomeResDto.setDescription(description);
+            eventHomeResDto.setStart_from(startFrom);
+            eventHomeResDto.setSchedule(schedule.toLocalDateTime());
+            homeResDtos.add(eventHomeResDto);
 
         }
-       return  homeResDtos;
+        return homeResDtos;
     }
 
     //query raw pakai JDBC easy to use
-    public ApiResponse<List<Map<String, Object>>> getAllEventUseJDBC(){
+    public ApiResponse<List<Map<String, Object>>> getAllEventUseJDBC() {
         String sql = "SELECT e.id,e.event_title, e.image, e.description, max(ct.price) as start_from, e.schedule\n" +
                 "\tFROM events e\n" +
                 "\tLEFT JOIN category_tickets ct on e.id = ct.event_id \n" +
                 "\tGROUP BY e.id, e.event_title, e.image, e.description, e.schedule";
         List<Map<String, Object>> data = jdbcTemplate.queryForList(sql);
-        return new ApiResponse<>(true, "Event retrieved",data );
+        return new ApiResponse<>(true, "Event retrieved", data);
     }
 
     //pakai entityManeger (harus di looing ulang, atau di map, males, kalau nga propery nga bakal ikut seperti ini: [[2, "Webinar Teknologi 2024"]])
-    public List<Map<String, Object>> getAllEventUseEM(){
+    public List<Map<String, Object>> getAllEventUseEM() {
         String sql = "SELECT e.id,e.event_title, e.image, e.description, max(ct.price) as start_from, e.schedule\n" +
                 "FROM events e\n" +
                 "LEFT JOIN category_tickets ct on e.id = ct.event_id \n" +
@@ -115,8 +119,7 @@ public class QueryExampleServiceImpl implements QueryExampleService {
     }
 
 
-
-    public User findByUserId(Long id){
+    public User findByUserId(Long id) {
         System.out.println(id);
         try {
             return userRepository.findById(id).orElseThrow(() -> new RuntimeException("user not found"));
@@ -126,7 +129,7 @@ public class QueryExampleServiceImpl implements QueryExampleService {
         }
     }
 
-    public Event findByIdCustome(Long id){
+    public Event findByIdCustome(Long id) {
         try {
             return eventRepository.findByIdCustome(id);
         } catch (RuntimeException e) {
@@ -135,7 +138,7 @@ public class QueryExampleServiceImpl implements QueryExampleService {
         }
     }
 
-    public Event findByIdJPA(Long id){
+    public Event findByIdJPA(Long id) {
         try {
             return eventRepository.findById(id).orElseThrow(() -> new RuntimeException("user not found"));
         } catch (RuntimeException e) {
@@ -144,7 +147,7 @@ public class QueryExampleServiceImpl implements QueryExampleService {
         }
     }
 
-    public EventResDto findByIdJpaModelObject(Long id){
+    public EventResDto findByIdJpaModelObject(Long id) {
 
         try {
             final Object[] castArray = (Object[]) eventRepository.findByIdCustomeObject(id);
@@ -165,14 +168,13 @@ public class QueryExampleServiceImpl implements QueryExampleService {
         }
     }
 
-    public Page<Event> getPaginationRepository(int page, int size){
-        Pageable pageable = PageRequest.of(page,size);
+    public Page<Event> getPaginationRepository(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
         return null;
-//        return eventRepository.getPaginatedEvents(pageable);
     }
 
     //query raw pakai JDBC easy to use
-    public ApiResponse<List<EventHomeResDto>> getPaginationJdbc(int page, int size){
+    public ApiResponse<List<EventHomeResDto>> getPaginationJdbc(int page, int size) {
 
         int offset = page * size;
         String sql = "SELECT * FROM (SELECT e.id,e.event_title, e.image, e.description, max(ct.price) as start_from, e.schedule\n" +
@@ -183,12 +185,19 @@ public class QueryExampleServiceImpl implements QueryExampleService {
                 ") as x\n";
 
         List<EventHomeResDto> data = jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(EventHomeResDto.class), size, offset);
-       return new ApiResponse<>(true, "Event retrieved",data );
+        return new ApiResponse<>(true, "Event retrieved", data);
     }
 
-    public List<Event> getEvents(){
+    public List<Event> getEvents() {
         return eventRepository.findAll();
     }
 
+
+
+    public Optional<Transaction> findAllByTransactionCode(){
+
+//       Optional<Transaction> transaction =  transactionRepository.findFirstByTransactionCode("TR250501122050");
+        return null;
+    }
 
 }

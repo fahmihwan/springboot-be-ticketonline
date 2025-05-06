@@ -25,6 +25,8 @@ public class Event extends BaseModel{
     private String slug;
     private String image;
     private LocalDateTime schedule;
+
+    @Column(columnDefinition = "text")
     private String description;
 
     @JsonIgnore

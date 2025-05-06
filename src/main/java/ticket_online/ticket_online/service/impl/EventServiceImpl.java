@@ -132,7 +132,10 @@ public class EventServiceImpl implements EventService {
     @Override
     public Event getEventWithAllCategoryTickets(String slug){
         try {
-            return  eventRepository.findFirstBySlugAndIsActiveTrueWithActiveCategoryTickets(slug).orElseThrow(()-> new RuntimeException("Event not found"));
+            Event event =  eventRepository.findFirstBySlugAndIsActiveTrue(slug).orElseThrow(()-> new RuntimeException("Event not found"));
+            event.setImage(GenerateUtil.generateImgUrl(event.getImage()));
+            return  event;
+
         }catch (RuntimeException e){
             throw new RuntimeException(e.getMessage(), e);
         }

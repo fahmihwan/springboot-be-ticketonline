@@ -15,12 +15,17 @@ import ticket_online.ticket_online.dto.transaction.TransactionHistoriesDto;
 import ticket_online.ticket_online.model.*;
 import ticket_online.ticket_online.repository.*;
 import ticket_online.ticket_online.service.TransactionService;
+import ticket_online.ticket_online.util.CheckUtil;
 import ticket_online.ticket_online.util.ConvertUtil;
 import ticket_online.ticket_online.util.GenerateUtil;
 
+import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 
 @Service
 public class TransactionServiceImpl implements TransactionService {
@@ -52,6 +57,9 @@ public class TransactionServiceImpl implements TransactionService {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private CartRepository cartRepository;
+
 
 
     @Transactional(rollbackFor = Exception.class)
@@ -68,9 +76,9 @@ public class TransactionServiceImpl implements TransactionService {
 
             List<CheckoutReqDto.Participans> participansPayload = checkoutReqDto.getParticipants();
             List<CheckoutReqDto.DetailCarts> detailCartsPayload = checkoutReqDto.getDetailCartTicket();
-
+            String transactionCode = GenerateUtil.transactionCode();
             Transaction transaction1 = new Transaction();
-            transaction1.setTransactionCode(GenerateUtil.transactionCode());
+            transaction1.setTransactionCode(transactionCode);
 
             transaction1.setEventId(getEvent.get());
 
@@ -142,7 +150,7 @@ public class TransactionServiceImpl implements TransactionService {
             String customerVaName = participansPayload.get(0).getFull_name(); // tampilan nama pada tampilan konfirmasi bank
             String callbackUrl = "http://example.com/callback"; // url untuk callback
             String returnUrl = "http://example.com/return"; // url untuk redirect
-            Integer expiryPeriod = 10; // atur waktu kadaluarsa dalam hitungan menit
+            Integer expiryPeriod = 30; // atur waktu kadaluarsa dalam hitungan menit
 
             // make signatureKEY
             String dataBefotSignature  = merchantCode + merchantOrderId + paymentAmount + API_KEY;
@@ -203,71 +211,98 @@ public class TransactionServiceImpl implements TransactionService {
             params.put("expiryPeriod", expiryPeriod);
 
 
-            Map<String, Object> response = paymentGatewayClient.transactionRequest(params);
+            CompletableFuture<Map<String, Object>> responseFuture = paymentGatewayClient.transactionRequest(params);
             Optional<Transaction> getTransactionFirst =  transactionRepository.findById(transaction1.getId());
 
-            if(getTransactionFirst.isPresent()){
-                Transaction updateTransaction = getTransactionFirst.get();
-                updateTransaction.setTotalQty(total_qty);
-                updateTransaction.setTotalPrice(total_price);
+            try {
+                Map<String, Object> response =  responseFuture.get();
 
-                updateTransaction.setPgMerchantCode((String) response.get("merchantCode")) ;
-                updateTransaction.setPgPaymentReference((String) response.get("reference"));
-                updateTransaction.setPgPaymentUrl((String) response.get("paymentUrl"));
-                updateTransaction.setPgVaNumber((String) response.get("vaNumber"));
-                updateTransaction.setPgAmount(Integer.parseInt(response.get("amount").toString()));
-                updateTransaction.setPgStatusCode((String) response.get("statusCode"));
-                if(Objects.equals((String) response.get("statusCode"), "00")){
-                    updateTransaction.setTransactionStatus(Transaction.TransactionStatus.valueOf("PENDING"));
+                if(getTransactionFirst.isPresent()){
+                    Transaction updateTransaction = getTransactionFirst.get();
+                    updateTransaction.setTotalQty(total_qty);
+                    updateTransaction.setTotalPrice(total_price);
+
+                    updateTransaction.setPgMerchantCode((String) response.get("merchantCode")) ;
+                    updateTransaction.setPgPaymentReference((String) response.get("reference"));
+                    updateTransaction.setPgPaymentUrl((String) response.get("paymentUrl"));
+                    updateTransaction.setPgVaNumber((String) response.get("vaNumber"));
+                    updateTransaction.setPgAmount(Integer.parseInt(response.get("amount").toString()));
+                    updateTransaction.setPgStatusCode((String) response.get("statusCode"));
+                    if(Objects.equals((String) response.get("statusCode"), "00")){
+                        updateTransaction.setTransactionStatus(Transaction.TransactionStatus.valueOf("PENDING"));
+                    }
+                    updateTransaction.setPgStatusMessage((String) response.get("ststatusMessage"));
+                    updateTransaction.setExpiryPeriod(expiryPeriod);
+                    updateTransaction.setUserId(checkoutReqDto.getUserId());
+
+                    updateTransaction.setPgMerchantOrderId(merchantOrderId);
+                    updateTransaction.setPgAmount(paymentAmount);
+                    response.put("transaction_code", transactionCode);
+                    transactionRepository.save(updateTransaction);
+                    cartRepository.deleteByUserId(checkoutReqDto.getUserId());
+                    return response;
+                }else{
+                    throw new RuntimeException("transaction not found");
                 }
-                updateTransaction.setPgStatusMessage((String) response.get("ststatusMessage"));
-                updateTransaction.setExpiryPeriod(expiryPeriod);
-                updateTransaction.setUserId(checkoutReqDto.getUserId());
 
-                updateTransaction.setPgMerchantOrderId(merchantOrderId);
-                updateTransaction.setPgAmount(paymentAmount);
-                transactionRepository.save(updateTransaction);
-            }else{
-                throw new RuntimeException("transaction not found");
+            }catch (Exception e){
+                throw new RuntimeException("Payment failed", e);
             }
 
-            return response;
+
+
         }catch (RuntimeException e) {
             throw new RuntimeException(e.getMessage(),e);
         }
     }
 
-    //detail transactions
+    //    HISTORIES
+    @Override
     public List<TransactionHistoriesDto> transactionHistories(Long userId){
 
-        String sql = "select t.transaction_code, e.image as image, t.transaction_status, e.event_title, t.created_at as tgl_transaksi, t.total_price  from transactions t\n" +
+
+        String sql = "select t.transaction_code, e.image as image, t.transaction_status, e.event_title, t.created_at as tgl_transaksi, t.total_price, t.expiry_period  from transactions t\n" +
                 "        inner join detail_transactions dt on t.id = dt.transaction_id\n" +
                 "        inner join category_tickets ct on ct.id  = dt.category_ticket_id\n" +
                 "        inner join events e on e.id = ct.event_id\n" +
                 "        where t.user_id  = ?\n" +
-                "        group by t.transaction_code, e.event_title, t.created_at, t.total_price, t.transaction_status, e.image";
+                "        group by t.transaction_code, e.event_title, t.created_at, t.total_price, t.transaction_status, e.image, t.expiry_period ORDER BY t.created_at DESC";
 
         List<TransactionHistoriesDto>  transactionHistoriesDtos =  jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(TransactionHistoriesDto.class), userId);
         for (TransactionHistoriesDto dto : transactionHistoriesDtos){
+
+
+            Object value = dto.getExpiry_period();
+            boolean isExpired = false;
+            if (value instanceof Number) {
+                Integer expiryPeriod = ((Number) value).intValue(); // ✔️ aman dikonversi
+                Timestamp createdAtTimestamp = Timestamp.valueOf(dto.getTgl_transaksi());
+                 isExpired = CheckUtil.checkIsExpiredTransaction(expiryPeriod, createdAtTimestamp);
+            }
+
+            if(isExpired && dto.getTransaction_status().equals("PENDING")){
+                String updateSql = "UPDATE transactions SET transaction_status = 'EXPIRED' WHERE transaction_code = ?";
+                jdbcTemplate.update(updateSql, dto.getTransaction_code());
+            }
+
             dto.setImage(GenerateUtil.generateImgUrl((String) dto.getImage()));
         }
         return transactionHistoriesDtos;
-
-
-
     }
 
-    //detail transactions
+    //    HISTORIES
+    @Override
     public TransactionDetailHistoriesDto transactionDetailHistories(String transactionCode) {
 
-        String sql = "select t.id, t.transaction_code, e.image as img, t.event_id, t.user_id, t.transaction_status, t.created_at, " +
+        updateStatusTransactionByCode(transactionCode);
+
+        String sql = "select t.id, t.transaction_code, t.pg_payment_url as payment_url, t.pg_va_number as virtual_account, e.image as img, t.event_id, t.user_id, t.transaction_status, t.created_at, " +
                 " t.total_qty as total_ticket, t.payment_method, t.pg_payment_amount as total_price\n" +
                 " from transactions t\n" +
                 " inner join events e on e.id  = t.event_id\n" +
                 " where t.transaction_code  = ? limit 1";
         List<TransactionDetailHistoriesDto> transaction =  jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(TransactionDetailHistoriesDto.class), transactionCode);
-        System.out.println(transaction);
-//
+
         Optional<User> user = null;
         Optional<Event> event = null;
 //
@@ -277,16 +312,16 @@ public class TransactionServiceImpl implements TransactionService {
             user = userRepository.findById(transaction.get(0).getUser_id());
             event = eventRepository.findFirstByIdAndIsActiveTrue(transaction.get(0).getEvent_id());
 
-
             transactionDetailHistoriesDto.setTransaction_code(transaction.get(0).getTransaction_code());
             transactionDetailHistoriesDto.setTransaction_status(String.valueOf(transaction.get(0).getTransaction_status()));
             LocalDateTime created_at = ConvertUtil.convertToLocalDateTime(transaction.get(0).getCreatedAt());
             transactionDetailHistoriesDto.setTransction_date(created_at);
+            transactionDetailHistoriesDto.setPayment_url(transaction.get(0).getPayment_url());
+            transactionDetailHistoriesDto.setVirtual_account(transaction.get(0).getVirtual_account());
             transactionDetailHistoriesDto.setTotal_ticket(transaction.get(0).getTotal_ticket());
             transactionDetailHistoriesDto.setTotal_price(transaction.get(0).getTotal_price());
             transactionDetailHistoriesDto.setPayment_method(transaction.get(0).getPayment_method());
             transactionDetailHistoriesDto.setImg(GenerateUtil.generateImgUrl(transaction.get(0).getImg()));
-
 
             if (user.isPresent()){
                 User mapUser = new User();
@@ -307,8 +342,6 @@ public class TransactionServiceImpl implements TransactionService {
             }
 
         }
-
-
 
         List<Map<String, Object>> getVisitor = transactionRepository.findVisitorFromTransaction(transactionCode);
         List<TransactionDetailHistoriesDto.Participans> participans = new ArrayList<>();
@@ -335,6 +368,54 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
 
+    public List<Map<String, Object>> checkIfCurrentTransactionEventForUserExists(String slug, Long userId){
+        String sql = "select t.id,t.transaction_code, t.pg_payment_url, t.created_at,t.expiry_period, t.transaction_status from transactions t \n" +
+                "inner join events e on t.event_id = e.id \n" +
+                "where e.slug = ? and t.user_id = ? and t.transaction_status = 'PENDING'";
+        List<Map<String, Object>> transactionHistories = jdbcTemplate.queryForList(sql, slug, userId);
+        System.out.println(transactionHistories);
+        List<Map<String, Object>> mp = new ArrayList<>();
+        for (Map<String, Object> obj : transactionHistories){
+
+            boolean isExpired = CheckUtil.checkIsExpiredTransaction(((Number) obj.get("expiry_period")).intValue(), (Timestamp) obj.get("created_at"));
+            obj.put("is_expired", isExpired);
+            if(isExpired){
+                String updateSql = "UPDATE transactions SET transaction_status = 'EXPIRED' WHERE id = ?";
+                jdbcTemplate.update(updateSql, obj.get("id"));
+            }
+        }
+        return  transactionHistories;
+    }
+
+    public void updateStatusTransactionByCode(String transactionCode){
+        String sql = "select * from transactions t where transaction_code = ? LIMIT 1";
+        List<Map<String, Object>> transactions = jdbcTemplate.queryForList(sql, transactionCode);
+
+        for (Map<String, Object> obj : transactions){
+            Integer expiryPeriod = ((Number) obj.get("expiry_period")).intValue();
+            Timestamp createdAtTimestamp = (Timestamp) obj.get("created_at");
+
+            boolean isExpired =  CheckUtil.checkIsExpiredTransaction(expiryPeriod, createdAtTimestamp);
+            obj.put("is_expired", isExpired);
+            if(isExpired &&  obj.get("transaction_status").equals("PENDING")){
+                String updateSql = "UPDATE transactions SET transaction_status = 'EXPIRED' WHERE id = ?";
+                jdbcTemplate.update(updateSql, obj.get("id"));
+            }
+
+        }
+    }
+
+
+    public void cancelledTransaction(String transactionCode){
+        Optional<Transaction> transaction = transactionRepository.findFirstByTransactionCodeAndIsActiveTrue(transactionCode);
+        System.out.println(transaction);
+        if(transaction.isPresent()){
+            Transaction transaction1 = transaction.get();
+            transaction1.setTransactionStatus(Transaction.TransactionStatus.valueOf("CANCELLED"));
+            transactionRepository.save(transaction1);
+        }
+
+    }
 
 
 

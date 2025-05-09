@@ -89,4 +89,51 @@ public class TransactionController {
         }
     }
 
+    @GetMapping("/check-transaction-exists/{userId}/{slug}")
+    public ResponseEntity<ApiResponse<List<Map<String, Object>>>> checkUserExcheckIfCurrentTransactionExists(@PathVariable Long userId, @PathVariable String slug){
+        try {
+            List<Map<String,Object>> response =  transactionService.checkIfCurrentTransactionEventForUserExists(slug, userId);
+            return  ResponseEntity.ok(new ApiResponse<>(true, "fsd", response));
+        }catch (RuntimeException e){
+            return ResponseEntity.ok(new ApiResponse<>(false, e.getMessage(), null));
+        }
+    }
+
+    @PutMapping("/{transactionCode}/cancel")
+    public ResponseEntity<ApiResponse<String>> cancelledTransaction(@PathVariable String transactionCode){
+        try {
+            transactionService.cancelledTransaction(transactionCode);
+            return  ResponseEntity.ok(new ApiResponse<>(true, "canceled transaction successfully", transactionCode));
+        }catch (RuntimeException e){
+            return ResponseEntity.ok(new ApiResponse<>(false, e.getMessage(), null));
+        }
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }

@@ -18,10 +18,10 @@ public class CartController {
     @Autowired
     private CartService cartService;
 
-    @GetMapping("/{userId}")
-    public  ResponseEntity<ApiResponse<List<CartResDto>>> findCartUser(@PathVariable Long userId){
+    @GetMapping("/{userId}/{slug}")
+    public  ResponseEntity<ApiResponse<List<CartResDto>>> findCartUser(@PathVariable Long userId, @PathVariable String slug){
         try {
-           List<CartResDto> cartUser = cartService.findCartUser(userId);
+           List<CartResDto> cartUser = cartService.findCartUser(userId, slug);
             System.out.println(cartUser);
             return  ResponseEntity.ok(new ApiResponse<>(true, "list cart user", cartUser));
 
@@ -34,7 +34,7 @@ public class CartController {
     @PostMapping("/cart-ticket")
     public ResponseEntity<ApiResponse<AddCartTicketReqDto>> storeDetailTransaction(@RequestBody AddCartTicketReqDto addCartTicketReqDto){
         try {
-            AddCartTicketReqDto response =  cartService.createCartTicket(addCartTicketReqDto);
+            AddCartTicketReqDto response =  cartService.createCartTicket(addCartTicketReqDto, 1L);
             return ResponseEntity.ok(new ApiResponse<>(true, "cart created successfully", response));
         }catch (RuntimeException e){
             return  ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse<>(false, e.getMessage(), null));

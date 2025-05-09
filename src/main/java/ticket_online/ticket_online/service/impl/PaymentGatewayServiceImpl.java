@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 @Slf4j
 @Service
@@ -134,7 +135,9 @@ public class PaymentGatewayServiceImpl implements PaymentGatewayService {
         System.out.println(params);
 
         try {
-            Map<String, Object> response = paymentGatewayClient.transactionRequest(params);
+            CompletableFuture<Map<String, Object>> responseFuture = paymentGatewayClient.transactionRequest(params);
+            Map<String,Object> response = responseFuture.get();
+
             return new ApiResponse<>(true, "Transaction Request retrieved successfully", response);
         }catch (RuntimeException e) {
             return new ApiResponse<>(true, e.getMessage(), null);

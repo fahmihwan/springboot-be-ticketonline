@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface CartService {
 
-    public List<CartResDto> findCartUser(Long userId);
-    public AddCartTicketReqDto createCartTicket(AddCartTicketReqDto addCartTicketReqDto);
+    public List<CartResDto> findCartUser(Long userId,String slug);
+    public AddCartTicketReqDto createCartTicket(AddCartTicketReqDto addCartTicketReqDto,Long userId);
     public Boolean destroyCartByUserId(Long id);
 }

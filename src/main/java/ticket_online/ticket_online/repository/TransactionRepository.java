@@ -27,6 +27,7 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
     Optional<Object[]> findFirstByTransactionCodeSQL(String transactionCode);
 
 
+    Optional<Transaction> findFirstByTransactionCodeAndIsActiveTrue(String transactionCode);
 
 
 

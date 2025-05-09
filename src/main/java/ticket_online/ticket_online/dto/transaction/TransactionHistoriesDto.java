@@ -19,5 +19,6 @@ public class TransactionHistoriesDto {
     private LocalDateTime tgl_transaksi;
     private Integer total_price;
     private String image;
+    private Integer expiry_period;
 
 }

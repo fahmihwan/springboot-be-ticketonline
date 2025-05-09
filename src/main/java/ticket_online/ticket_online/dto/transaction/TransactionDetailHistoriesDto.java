@@ -24,6 +24,8 @@ public class TransactionDetailHistoriesDto {
     private LocalDateTime transction_date;
     private Integer total_ticket;
     private String payment_method;
+    private String virtual_account;
+    private String payment_url;
     private Integer total_price;
     private String img;
 

@@ -33,11 +33,12 @@ public class CartServiceImpl implements CartService {
     private JdbcTemplate jdbcTemplate;
 
     @Override
-    public List<CartResDto> findCartUser(Long userId){
+    public List<CartResDto> findCartUser(Long userId, String slug){
         String sql = "select c.id, ct.category_name, ct.price,c.total, c.category_ticket_id from carts c\n" +
                 "inner join category_tickets ct on ct.id = c.category_ticket_id \n" +
-                "where c.user_id = ? and c.is_active=true ";
-        List<CartResDto> data = jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(CartResDto.class), userId);
+                "inner join events e on e.id  = ct.event_id \n"+
+                "where c.user_id = ? and c.is_active=true and e.slug = ? ";
+        List<CartResDto> data = jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(CartResDto.class), userId,slug);
         System.out.println(data);
         return  data;
     }
@@ -45,12 +46,12 @@ public class CartServiceImpl implements CartService {
 
     @Transactional
     @Override
-    public AddCartTicketReqDto createCartTicket(AddCartTicketReqDto addCartTicketReqDto){
+    public AddCartTicketReqDto createCartTicket(AddCartTicketReqDto addCartTicketReqDto, Long userId){
         try {
 
-            List<Cart> havingCart = cartRepository.findByUserId(1L);
+            List<Cart> havingCart = cartRepository.findByUserId(userId);
             if(havingCart.size() > 0){
-                cartRepository.deleteByUserId(1L);
+                cartRepository.deleteByUserId(userId);
             }
 
             for (int i = 0; i < addCartTicketReqDto.getDetailTransactions().size(); i++) {
@@ -62,14 +63,11 @@ public class CartServiceImpl implements CartService {
                     throw new RuntimeException("ticket is not Exists");
                 }
 
-
                 if(categoryTicket.get().getQuotaTicket() >= reqCategoryTicket.getTotal()) {
-//                    Integer qty = categoryTicket.get().getQuotaTicket() - reqCategoryTicket.getTotal();
-
                     CategoryTicket categoryTicket1 = categoryTicket.get();
                     Cart cart = new Cart();
                     cart.setCategoryTicketid(categoryTicket1.getId());
-                    cart.setUserId(1L);
+                    cart.setUserId(userId);
                     cart.setTotal(reqCategoryTicket.getTotal());
                     cartRepository.save(cart);
                 }

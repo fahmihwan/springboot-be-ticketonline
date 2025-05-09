@@ -69,7 +69,8 @@ public class Transaction extends BaseModel{
         PENDING,
         SUCCESS,
         FAILED,
-        CANCELLED
+        CANCELLED,
+        EXPIRED,
     }
 
 

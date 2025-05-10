@@ -122,15 +122,4 @@ public class EventController {
 
     }
 
-    ////=================================================================================================================================================================
-//
-//    @GetMapping("/{id}")
-//    public ResponseEntity<ApiResponse<EventDetailResDto>> getEventDetailById(@PathVariable Long id){
-//        ApiResponse<EventDetailResDto> response = eventService.getEventById(id);
-//        if(response.getSuccess()){
-//            return ResponseEntity.ok(response);
-//        }else{
-//            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-//        }
-//    }
 }

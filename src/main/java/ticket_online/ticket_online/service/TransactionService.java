@@ -15,11 +15,7 @@ public interface TransactionService {
 
     public List<Map<String, Object>> checkIfCurrentTransactionEventForUserExists(String slug, Long userId);
 
-
-    public List<TransactionHistoriesDto> transactionHistories(Long userId);
-
-
-    public TransactionDetailHistoriesDto transactionDetailHistories(String transactionCode);
+    public void updateStatusTransactionByCode(String transactionCode);
 
     public void cancelledTransaction(String transactionCode);
 

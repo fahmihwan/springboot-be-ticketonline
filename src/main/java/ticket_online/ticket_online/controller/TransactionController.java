@@ -7,16 +7,11 @@ import ticket_online.ticket_online.dto.ApiResponse;
 import ticket_online.ticket_online.dto.cart.AddCartTicketReqDto;
 import ticket_online.ticket_online.dto.transaction.CheckoutReqDto;
 import ticket_online.ticket_online.dto.transaction.GetPaymentMethodReqDto;
-import ticket_online.ticket_online.dto.transaction.TransactionDetailHistoriesDto;
-import ticket_online.ticket_online.dto.transaction.TransactionHistoriesDto;
-import ticket_online.ticket_online.model.Event;
-import ticket_online.ticket_online.model.Transaction;
 import ticket_online.ticket_online.service.PaymentGatewayService;
 import ticket_online.ticket_online.service.TransactionService;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/transaction")
@@ -39,27 +34,6 @@ public class TransactionController {
             return ResponseEntity.ok(new ApiResponse<>(false, e.getMessage(), null));
         }
     }
-
-    @GetMapping("/histories/{userId}")
-    public ResponseEntity<ApiResponse<List<TransactionHistoriesDto>>> transactionHistories(@PathVariable Long userId){
-        try {
-            List<TransactionHistoriesDto> transactionHistoriesDto = transactionService.transactionHistories(userId);
-            return ResponseEntity.ok(new ApiResponse<>(true, "transaction histories", transactionHistoriesDto));
-        }catch (RuntimeException e){
-            return ResponseEntity.ok(new ApiResponse<>(false, e.getMessage(), null));
-        }
-    }
-
-    @GetMapping("/histories-detail/{transactionCode}")
-    public ResponseEntity<ApiResponse<TransactionDetailHistoriesDto>> transactionDetailHistories(@PathVariable String transactionCode){
-        try {
-            TransactionDetailHistoriesDto transactionDetailHistories = transactionService.transactionDetailHistories(transactionCode);
-            return  ResponseEntity.ok(new ApiResponse<>(true, "fsd", transactionDetailHistories));
-        }catch (RuntimeException e){
-            return ResponseEntity.ok(new ApiResponse<>(false, e.getMessage(), null));
-        }
-    }
-
 
     @PostMapping("/paymentgateway-get-payment-method")
     public ResponseEntity<ApiResponse<Map<String,Object>>> getPaymentMethod(@RequestBody GetPaymentMethodReqDto request) {
@@ -108,6 +82,9 @@ public class TransactionController {
             return ResponseEntity.ok(new ApiResponse<>(false, e.getMessage(), null));
         }
     }
+
+
+
 
 
 

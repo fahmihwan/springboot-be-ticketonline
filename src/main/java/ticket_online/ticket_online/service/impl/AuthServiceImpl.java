@@ -52,7 +52,7 @@ public class AuthServiceImpl implements AuthService {
             user.setEmail(registerReqDto.getEmail());
             user.setPassword(passwordEncoder.encode(registerReqDto.getPassword()));
             user.setBirthDate(registerReqDto.getBirthDate());
-            user.setRole(ERole.USER);
+            user.setRole(registerReqDto.getRole());
 
             System.out.println(user);
             userRepository.saveAndFlush(user);

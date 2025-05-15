@@ -49,6 +49,7 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/uploaded-images/**",
                                 "/api/auth/register-user",
+                                "/api/auth/register-admin",
                                 "/api/auth/login",
                                 "/api/event/*",
                                 "/api/event/*/events"

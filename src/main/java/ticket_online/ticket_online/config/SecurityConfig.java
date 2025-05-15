@@ -40,13 +40,19 @@ public class SecurityConfig {
                 .build();
     }
 
-    @Bean
+    @Bean //disini untuk set Auth GUest
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception { //CORS INI YANG TERPAKAI
         return http.cors()
                 .and()
-                .csrf().disable()
+                .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**", "/uploaded-images/**").permitAll()
+                        .requestMatchers(
+                                "/uploaded-images/**",
+                                "/api/auth/register-user",
+                                "/api/auth/login",
+                                "/api/event/*",
+                                "/api/event/*/events"
+                                ).permitAll()
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();

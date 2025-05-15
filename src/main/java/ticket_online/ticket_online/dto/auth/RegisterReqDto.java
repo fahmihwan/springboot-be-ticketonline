@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import ticket_online.ticket_online.constant.EGender;
 import ticket_online.ticket_online.constant.ERole;
 
 import java.time.LocalDateTime;
@@ -18,6 +19,7 @@ public class RegisterReqDto {
     private String email;
     private String password;
     private ERole role;
+    private EGender gender;
     private LocalDateTime birthDate;
     private String phoneNumber;
 }

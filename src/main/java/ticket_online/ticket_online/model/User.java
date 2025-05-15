@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
+import ticket_online.ticket_online.constant.EGender;
 import ticket_online.ticket_online.constant.ERole;
 
 import java.security.PrivilegedAction;
@@ -13,7 +14,7 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "users")
-@ToString(exclude = "role")
+@ToString(exclude = {"role", "gender"})
 @Getter
 @Setter
 public class User extends BaseModel {
@@ -24,6 +25,9 @@ public class User extends BaseModel {
     private String password;
 
     @Enumerated(EnumType.STRING)
+    private EGender gender;
+
+    @Enumerated(EnumType.STRING)
     private ERole role;
 
     @Column(name = "birth_date")
@@ -31,6 +35,8 @@ public class User extends BaseModel {
 
     @Column(name = "phone_number")
     private String phoneNumber;
+
+    private String address;
 
 
 

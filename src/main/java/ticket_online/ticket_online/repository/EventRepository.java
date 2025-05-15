@@ -21,6 +21,8 @@ public interface EventRepository extends JpaRepository<Event, Long> {
 
     boolean existsBySlug(String slug); //query method
 
+    List<Event>  findTop5ByIsActiveTrueOrderByCreatedAtDesc();
+
     Optional<Event> findFirstBySlugAndIsActiveTrue(String slug);
 
     Optional<Event> findFirstByIdAndIsActiveTrue(Long id);

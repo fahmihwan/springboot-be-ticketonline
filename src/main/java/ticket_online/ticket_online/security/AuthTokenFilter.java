@@ -58,31 +58,4 @@ public class AuthTokenFilter extends OncePerRequestFilter {
 
 
 
-//    @Override
-//    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-//        try{
-//            String headerAuth = request.getHeader("Authorization");
-//            String token = null;
-//            if (headerAuth != null && headerAuth.startsWith("Bearer ")) {
-//                token = headerAuth.substring(7);
-//            }
-//
-//            if (token != null && jwtUtil.verifyToken(token)) {
-//
-//
-//                Map<String, String> userInfo = jwtUtil.getUserInfoByToken(token);
-//                Long userId = Long.valueOf(userInfo.get("UserId"));
-//
-//                UserDetails userDetails = (UserDetails) userService.findByUserId(userId);
-//                UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(userDetails,null, userDetails.getAuthorities());
-//                authenticationToken.setDetails(new WebAuthenticationDetails(request));
-//                SecurityContextHolder.getContext().setAuthentication(authenticationToken);
-//            }
-//        } catch (Exception e){
-//            log.error("Cannot process authentication: {}", e.getMessage());
-//        }
-//        filterChain.doFilter(request, response);
-//    }
-
-
 }

@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import ticket_online.ticket_online.dto.ApiResponse;
 import ticket_online.ticket_online.dto.event.EventHomeResDto;
@@ -24,6 +25,7 @@ public class LineUpController {
     LineUpService lineUpService;
 
 
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/{slug}")
     public  ResponseEntity<ApiResponse<List<LineUp>>> getAllLineUpBySlug(@PathVariable String slug){
         try {
@@ -34,6 +36,7 @@ public class LineUpController {
         }
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/{slug}")
     public ResponseEntity<ApiResponse<LineUp>> storeLineUp(@RequestBody LineUp lineUp, @PathVariable String slug){
         try {
@@ -44,6 +47,7 @@ public class LineUpController {
         }
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/remove/{id}")
     public ResponseEntity<ApiResponse<Boolean>> removeLineUp(@PathVariable Long id){
         System.out.println(id);

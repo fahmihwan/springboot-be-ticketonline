@@ -3,6 +3,7 @@ package ticket_online.ticket_online.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import ticket_online.ticket_online.dto.ApiResponse;
 import ticket_online.ticket_online.dto.categoryTicket.CategoryTicketReqDto;
@@ -19,7 +20,7 @@ public class CategoryTicketController {
     @Autowired
     CategoryTicketService categoryTicketService;
 
-
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public ResponseEntity<ApiResponse<CategoryTicket>> createCategoryAdmin(@RequestBody CategoryTicketReqDto categoryTicketReqDto){
         try {
@@ -30,6 +31,7 @@ public class CategoryTicketController {
         }
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/remove/{categoryTicketId}")
     public ResponseEntity<ApiResponse<Boolean>> removeCatgoryTicketAdmin(@PathVariable Long categoryTicketId){
 //        return  null;

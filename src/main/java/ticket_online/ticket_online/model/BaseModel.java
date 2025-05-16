@@ -19,7 +19,7 @@ public class BaseModel {
     @Column(name = "id")
     private Long id;
 
-    @JsonIgnore
+//    @JsonIgnore
     @Column(name = "is_active")
     private Boolean isActive;
 

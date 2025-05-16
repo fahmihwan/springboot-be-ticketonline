@@ -14,6 +14,8 @@ import java.util.List;
 @Setter
 public class CategoryTicket extends BaseModel {
 
+
+
     @Column(name ="event_id")
     private Long eventId;
 

@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import ticket_online.ticket_online.dto.ApiResponse;
@@ -37,6 +38,7 @@ public class EventController {
 
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN','USER')")
     @GetMapping("/admin/pagination")
     public ResponseEntity<ApiResponse<Page<Event>>> getEventAdmin(@RequestParam(value = "page", defaultValue = "0") int page,
                                                                   @RequestParam(value = "size",defaultValue = "5") int size){
@@ -51,6 +53,7 @@ public class EventController {
 
     @GetMapping("/{slug}")
     public ResponseEntity<ApiResponse<EventDetailResDto>> getEventDetailBySlug(@PathVariable String slug){
+        System.out.println("wkwkwkwk "+ slug );
         try {
             EventDetailResDto response = eventService.getEventBySlug(slug);
             return ResponseEntity.ok(new ApiResponse<>(true, "Event Detail retrieved", response));
@@ -69,7 +72,7 @@ public class EventController {
         }
     }
 
-
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public ResponseEntity<ApiResponse<Event>> storeEventAdmin(@ModelAttribute EventReqDto eventReqDto,
                                                               @RequestParam(name = "image", required = false) MultipartFile image){
@@ -84,6 +87,7 @@ public class EventController {
     }
 
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{slug}")
     public ResponseEntity<ApiResponse<Event>> updateEventAdmin(@ModelAttribute EventReqDto eventReqDto,
                                                                @RequestParam(name = "image", required = false) MultipartFile image,
@@ -99,6 +103,7 @@ public class EventController {
 
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/remove/{id}")
     public ResponseEntity<ApiResponse<Boolean>> removeEventAdmin(@PathVariable Long id){
 
@@ -110,7 +115,7 @@ public class EventController {
         }
 
     }
-
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/destroy/{id}")
     public ResponseEntity<ApiResponse<Boolean>> destroyEventAdminWithTickets(@PathVariable Long id){
         try {

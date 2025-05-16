@@ -133,6 +133,12 @@ public class EventServiceImpl implements EventService {
     public Event getEventWithAllCategoryTickets(String slug){
         try {
             Event event =  eventRepository.findFirstBySlugAndIsActiveTrue(slug).orElseThrow(()-> new RuntimeException("Event not found"));
+
+            List<CategoryTicket> filtered = event.getCategory_tickets()
+                    .stream()
+                    .filter(ct -> Boolean.TRUE.equals(ct.getIsActive()))
+                    .collect(Collectors.toList());
+            event.setCategory_tickets(filtered);
             event.setImage(GenerateUtil.generateImgUrl(event.getImage()));
             return  event;
 

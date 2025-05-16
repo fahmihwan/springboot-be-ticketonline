@@ -2,6 +2,7 @@ package ticket_online.ticket_online.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -42,7 +43,7 @@ public class HistoriesTransactionController {
         }
     }
 
-
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/admin")
     public ResponseEntity<ApiResponse<Map<String, Object>>> listTransactionAdmin(@RequestParam(value = "page", defaultValue = "0") int page,
                                                                                   @RequestParam(value = "size",defaultValue = "5") int size){

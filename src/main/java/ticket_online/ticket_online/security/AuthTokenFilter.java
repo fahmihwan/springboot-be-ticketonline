@@ -1,26 +1,24 @@
 package ticket_online.ticket_online.security;
 
+import com.auth0.jwt.exceptions.JWTVerificationException;
+import com.auth0.jwt.exceptions.TokenExpiredException;
+import com.auth0.jwt.interfaces.DecodedJWT;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.web.authentication.WebAuthenticationDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
-import ticket_online.ticket_online.model.User;
 import ticket_online.ticket_online.service.UserService;
 
 import java.io.IOException;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @Component
 @Slf4j
@@ -40,16 +38,27 @@ public class AuthTokenFilter extends OncePerRequestFilter {
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             String token = authHeader.substring(7);
             try {
-                String email = jwtUtil.verifyToken(token);
+                DecodedJWT decodedJWT = jwtUtil.decodedJWT(token);
+                String email = decodedJWT.getSubject();
+                String role = decodedJWT.getClaim("role").asString();
+//                System.out.println("Role from JWT: " + role);
 
-                UsernamePasswordAuthenticationToken authentication =
-                        new UsernamePasswordAuthenticationToken(email, null, Collections.emptyList());
+                GrantedAuthority authority = new SimpleGrantedAuthority(role.toUpperCase());
+                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(email, null, List.of(authority));
 
+//                System.out.println("Granted Authority: " + authority);
                 SecurityContextHolder.getContext().setAuthentication(authentication);
+//                System.out.println("Authorities in context: " + SecurityContextHolder.getContext().getAuthentication().getAuthorities());
 
+            } catch (TokenExpiredException e) {
+//                log.warn("JWT token expired: {}", e.getMessage());
+                throw new RuntimeException(e.getMessage(), e);
+            } catch (JWTVerificationException e) {
+//                log.warn("JWT verification failed: {}", e.getMessage());
+                throw new RuntimeException(e.getMessage(), e);
             } catch (Exception e) {
-                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token tidak valid atau expired");
-                return;
+//                log.error("Unexpected error while verifying token: {}", e.getMessage());
+                throw new RuntimeException(e.getMessage(), e);
             }
         }
 

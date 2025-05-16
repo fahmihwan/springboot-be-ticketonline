@@ -11,6 +11,7 @@ import java.util.List;
 @Getter
 @ToString
 public class AddCartTicketReqDto {
+    private Long userId;
     private String slug;
     private List<DetailTicketReqDto> detailTransactions;
 

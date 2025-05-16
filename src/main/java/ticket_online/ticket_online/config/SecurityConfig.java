@@ -5,7 +5,11 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -19,6 +23,7 @@ import ticket_online.ticket_online.service.UserService;
 import java.util.List;
 
 @Configuration
+@EnableMethodSecurity(prePostEnabled = true)// Aktifkan anotasi @PreAuthorize
 public class SecurityConfig {
 
     @Autowired
@@ -27,8 +32,6 @@ public class SecurityConfig {
     @Autowired
     private UserService userService;
 
-//    @Autowired
-//    private PasswordEncoder passwordEncoder;
 
 
     @Bean
@@ -41,20 +44,26 @@ public class SecurityConfig {
     }
 
     @Bean //disini untuk set Auth GUest
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception { //CORS INI YANG TERPAKAI
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception { //CORS INI YANG TERPAKAI
         return http.cors()
                 .and()
-                .csrf(csrf -> csrf.disable())
+//                .csrf(csrf -> csrf.disable())
+                .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(
+                        .requestMatchers( //untuk set no auth
                                 "/uploaded-images/**",
                                 "/api/auth/register-user",
                                 "/api/auth/register-admin",
                                 "/api/auth/login",
                                 "/api/event/*",
-                                "/api/event/*/events"
+                                "/api/event/*/events",
+                                "/api/event/*/with-category-tickets"
                                 ).permitAll()
+//                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated())
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                )
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
@@ -74,6 +83,11 @@ public class SecurityConfig {
         source.registerCorsConfiguration("/uploaded-images/**", config);
         return source;
     }
+
+//    @Bean
+//    public AuthTokenFilter authTokenFilter() {
+//        return new AuthTokenFilter(); // atau pakai @Component kalau constructor-nya pakai @Autowired/@RequiredArgsConstructor
+//    }
 
     @Bean
     public PasswordEncoder passwordEncoder() {

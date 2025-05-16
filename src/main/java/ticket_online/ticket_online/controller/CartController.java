@@ -34,7 +34,7 @@ public class CartController {
     @PostMapping("/cart-ticket")
     public ResponseEntity<ApiResponse<AddCartTicketReqDto>> storeDetailTransaction(@RequestBody AddCartTicketReqDto addCartTicketReqDto){
         try {
-            AddCartTicketReqDto response =  cartService.createCartTicket(addCartTicketReqDto, 1L);
+            AddCartTicketReqDto response =  cartService.createCartTicket(addCartTicketReqDto, addCartTicketReqDto.getUserId());
             return ResponseEntity.ok(new ApiResponse<>(true, "cart created successfully", response));
         }catch (RuntimeException e){
             return  ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse<>(false, e.getMessage(), null));

@@ -20,51 +20,67 @@ import java.util.Map;
 @Component
 @Slf4j
 public class JwtUtil {
-    private String jwtSecret = "ZQuRaEtd1m3xC9NuT20g4ihjcMf82ihC3Ut3mDgQeSbv5orIbYqNMMqZnEemqm37CJwmxKNKdmBD4eCeB3M9zUjP9J94cttPkRE0";
+    private String JWTSECRET = "ZQuRaEtd1m3xC9NuT20g4ihjcMf82ihC3Ut3mDgQeSbv5orIbYqNMMqZnEemqm37CJwmxKNKdmBD4eCeB3M9zUjP9J94cttPkRE0";
 
     private String appName = "online ticket";
 
     private long expiryTimeInSeconds = 36000L;
-    private static final String SECRET = "rahasia123";
 
     public String generateToken(AppUser userLogin){
         try{
+            System.out.println("ROLE_"+userLogin.getRole().name() + " generate");
             return JWT.create()
                     .withSubject(userLogin.getEmail())
                     .withIssuedAt(new Date())
-                    .withClaim("role", userLogin.getRole().name())
-                    .withExpiresAt(new Date(System.currentTimeMillis() + expiryTimeInSeconds))
-                    .sign(Algorithm.HMAC256(SECRET));
+                    .withClaim("role", "ROLE_" + userLogin.getRole().name())
+                    .withExpiresAt(new Date(System.currentTimeMillis() + expiryTimeInSeconds * 1000))
+                    .sign(Algorithm.HMAC256(JWTSECRET));
+
         } catch (JWTCreationException e){
-            throw new RuntimeException("JWT generation failed", e);
+//            log.error("generate token : {}",e.getMessage());
+            throw new RuntimeException(e.getMessage(), e);
         }
+    }
+
+
+    public DecodedJWT decodedJWT(String token){
+        Algorithm algorithm = Algorithm.HMAC256(JWTSECRET);
+        JWTVerifier verifier = JWT.require(algorithm).build();
+//        System.out.println(verifier);
+        return  verifier.verify(token);
     }
 
     public String verifyToken(String token){
         try{
-            JWTVerifier verifier = JWT.require(Algorithm.HMAC256(SECRET)).build();
+            JWTVerifier verifier = JWT.require(Algorithm.HMAC256(JWTSECRET)).build();
             DecodedJWT jwt = verifier.verify(token);
             return jwt.getSubject(); // isinya email
         } catch (JWTVerificationException e){
-            log.error("Error Verifying token : {}",e.getMessage());
-            return null;
+//            log.error("Error Verifying token : {}",e.getMessage());
+            throw new RuntimeException(e.getMessage(), e);
+
         }
     }
 
+
     public Map<String, String> getUserInfoByToken(String token){
         try{
-            Algorithm algorithm = Algorithm.HMAC256(jwtSecret.getBytes());
+            Algorithm algorithm = Algorithm.HMAC256(JWTSECRET);
             JWTVerifier verifier = JWT.require(algorithm).build();
             DecodedJWT decodedJWT = verifier.verify(token);
 
             Map<String,String> userInfo = new HashMap<>();
-            userInfo.put("UserId", decodedJWT.getSubject());
-            userInfo.put("role", decodedJWT.getClaim("role").asString());
+//            userInfo.put("UserId", decodedJWT.getSubject());
+//            userInfo.put("role", decodedJWT.getClaim("role").asString());
 
             return userInfo;
-        }catch (JWTVerificationException e){
-            log.error("Error Verifying token : {}",e.getMessage());
-            return null;
+        }catch (JWTVerificationException e) {
+//            log.error("Error getUserInfoByToken : {}",e.getMessage());
+            throw new RuntimeException(e.getMessage(), e);
+
+        } catch (Exception e) {
+//            log.error("Error getUserInfoByToken : {}",e.getMessage());
+            throw new RuntimeException(e.getMessage(), e);
         }
     }
 }

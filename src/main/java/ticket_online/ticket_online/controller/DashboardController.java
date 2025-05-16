@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -24,6 +25,7 @@ public class DashboardController {
     @Autowired
     private DashboardService dashboardService;
 
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/stats-ui")
     public ResponseEntity<ApiResponse<Map<String, Object>>> getDataStatUi(){
         try {
@@ -34,6 +36,7 @@ public class DashboardController {
         }
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/get-five-new-event")
     public ResponseEntity<ApiResponse<List<Event>>> getFiveNewEvent(){
         try {
@@ -44,7 +47,7 @@ public class DashboardController {
         }
     }
 
-
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/get-number-of-transaction-per-month")
     public ResponseEntity<ApiResponse<List<Map<String, Object>>>> getNumberOfTransactionPerMonth(){
         try {

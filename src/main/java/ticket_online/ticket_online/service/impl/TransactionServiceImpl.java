@@ -1,6 +1,10 @@
 package ticket_online.ticket_online.service.impl;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -9,6 +13,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 
 import ticket_online.ticket_online.client.PaymentGatewayClient;
+import ticket_online.ticket_online.constant.ETransactionStatus;
+import ticket_online.ticket_online.controller.TransactionController;
 import ticket_online.ticket_online.dto.transaction.CheckoutReqDto;
 import ticket_online.ticket_online.dto.transaction.TransactionDetailHistoriesDto;
 import ticket_online.ticket_online.dto.transaction.TransactionHistoriesDto;
@@ -30,8 +36,27 @@ import java.util.concurrent.CompletableFuture;
 @Service
 public class TransactionServiceImpl implements TransactionService {
 
-    private static final String MERCHANT_CODE = "DS21299";
-    private static final String API_KEY = "36d359f7edace8b47b99c6b733eb0313";
+
+//    paymentgateway.duitku.callbackurl="https://d27e-125-165-65-152.ngrok-free.app/api/transaction/callback"
+//    paymentgateway.duitku.returnurl="https://www.google.com"
+//    ="DS21299"
+//    paymentgateway.duitku.apikey="36d359f7edace8b47b99c6b733eb0313"
+
+    @Value("${paymentgateway.duitku.merchantcode}")
+    private String MERCHANT_CODE;
+
+    @Value("${paymentgateway.duitku.apikey}")
+    private String API_KEY;
+
+    @Value("${paymentgateway.duitku.callbackurl}")
+    private String CALLBACK_URL;
+
+    @Value("${paymentgateway.duitku.returnurl}")
+    private String RETURN_URL;
+
+
+    // Membuat Logger instance untuk kelas ini
+    private static final Logger logger = LoggerFactory.getLogger(TransactionController.class);
 
     @Autowired
     private PaymentGatewayClient paymentGatewayClient;
@@ -145,8 +170,8 @@ public class TransactionServiceImpl implements TransactionService {
             String additionalParam = ""; // opsional
             String merchantUserInfo = ""; // opsional
             String customerVaName = participansPayload.get(0).getFull_name(); // tampilan nama pada tampilan konfirmasi bank
-            String callbackUrl = "http://example.com/callback"; // url untuk callback
-            String returnUrl = "http://example.com/return"; // url untuk redirect
+            String callbackUrl = CALLBACK_URL; // url untuk callback
+            String returnUrl = RETURN_URL; // url untuk redirect
             Integer expiryPeriod = 30; // atur waktu kadaluarsa dalam hitungan menit
 
             // make signatureKEY
@@ -226,7 +251,7 @@ public class TransactionServiceImpl implements TransactionService {
                     updateTransaction.setPgAmount(Integer.parseInt(response.get("amount").toString()));
                     updateTransaction.setPgStatusCode((String) response.get("statusCode"));
                     if(Objects.equals((String) response.get("statusCode"), "00")){
-                        updateTransaction.setTransactionStatus(Transaction.TransactionStatus.valueOf("PENDING"));
+                        updateTransaction.setTransactionStatus(ETransactionStatus.valueOf("PENDING"));
                     }
                     updateTransaction.setPgStatusMessage((String) response.get("ststatusMessage"));
                     updateTransaction.setExpiryPeriod(expiryPeriod);
@@ -299,11 +324,16 @@ public class TransactionServiceImpl implements TransactionService {
         System.out.println(transaction);
         if(transaction.isPresent()){
             Transaction transaction1 = transaction.get();
-            transaction1.setTransactionStatus(Transaction.TransactionStatus.valueOf("CANCELLED"));
+            transaction1.setTransactionStatus(ETransactionStatus.valueOf("CANCELLED"));
             transactionRepository.save(transaction1);
         }
-
     }
+
+    @Override
+    public String handleCallbackPayment(Map<String, String> body){
+       return paymentGatewayClient.handleCallbackPayament(body);
+    }
+
 
 
 

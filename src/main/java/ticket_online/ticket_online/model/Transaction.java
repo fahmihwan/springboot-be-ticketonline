@@ -4,6 +4,9 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import ticket_online.ticket_online.constant.ETransactionStatus;
+
+import java.time.LocalDate;
 
 
 @Entity
@@ -40,6 +43,15 @@ public class Transaction extends BaseModel{
     @Column(name="pg_payment_amount")
     private Integer pgAmount;
 
+    @Column(name = "pg_settlement_date")
+    private LocalDate pgSettlementDate;
+
+    @Column(name = "pg_publisher_order_id")
+    private String pgPublisherOrderId;
+
+    @Column(name = "pg_issuer_code")
+    private String issuerCode;
+
     @Column(name="status_code")
     private String pgStatusCode;
 
@@ -61,17 +73,9 @@ public class Transaction extends BaseModel{
 
     @Enumerated(EnumType.STRING)
     @Column(name = "transaction_status")
-    private TransactionStatus transactionStatus;
+    private ETransactionStatus transactionStatus;
 
 
-
-    public enum TransactionStatus{
-        PENDING,
-        SUCCESS,
-        FAILED,
-        CANCELLED,
-        EXPIRED,
-    }
 
 
 }

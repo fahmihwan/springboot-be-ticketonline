@@ -1,5 +1,6 @@
 package ticket_online.ticket_online.service;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import ticket_online.ticket_online.dto.transaction.CheckoutReqDto;
 import ticket_online.ticket_online.dto.transaction.TransactionDetailHistoriesDto;
 import ticket_online.ticket_online.dto.transaction.TransactionHistoriesDto;
@@ -19,5 +20,6 @@ public interface TransactionService {
 
     public void cancelledTransaction(String transactionCode);
 
+    public String handleCallbackPayment(Map<String, String> body);
 
 }

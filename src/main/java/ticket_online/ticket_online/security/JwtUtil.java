@@ -28,7 +28,6 @@ public class JwtUtil {
 
     public String generateToken(AppUser userLogin){
         try{
-            System.out.println("ROLE_"+userLogin.getRole().name() + " generate");
             return JWT.create()
                     .withSubject(userLogin.getEmail())
                     .withIssuedAt(new Date())

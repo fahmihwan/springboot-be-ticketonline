@@ -28,6 +28,8 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
 
 
     Optional<Transaction> findFirstByTransactionCodeAndIsActiveTrue(String transactionCode);
+//    pgMerchantOrderId
+    Optional<Transaction> findFirstByPgMerchantOrderId(String pgMerchantOrderId);
 
 
 

@@ -1,6 +1,7 @@
 package ticket_online.ticket_online.controller;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.aop.scope.ScopedObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -28,7 +29,7 @@ public class EventController {
 
     @GetMapping("/{total}/events")
     public ResponseEntity<ApiResponse<List<EventHomeResDto>>> getEventHome(@PathVariable Integer total){
-
+        System.out.println("ssksk");
         try {
             List<EventHomeResDto> response =  eventService.getEventWithMinPrice(total);
             return ResponseEntity.ok(new ApiResponse<>(true, "Event retrieved successfully ", response));

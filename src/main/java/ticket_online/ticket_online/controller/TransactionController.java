@@ -1,8 +1,13 @@
 package ticket_online.ticket_online.controller;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
+import ticket_online.ticket_online.client.PaymentGatewayClient;
 import ticket_online.ticket_online.dto.ApiResponse;
 import ticket_online.ticket_online.dto.cart.AddCartTicketReqDto;
 import ticket_online.ticket_online.dto.transaction.CheckoutReqDto;
@@ -12,10 +17,14 @@ import ticket_online.ticket_online.service.TransactionService;
 
 import java.util.List;
 import java.util.Map;
-
+@Slf4j
 @RestController
 @RequestMapping("/api/transaction")
 public class TransactionController {
+
+
+    // Membuat Logger instance untuk kelas ini
+    private static final Logger logger = LoggerFactory.getLogger(TransactionController.class);
 
     @Autowired
     private PaymentGatewayService paymentGatewayService;
@@ -23,8 +32,10 @@ public class TransactionController {
     @Autowired
     private TransactionService transactionService;
 
+    @Autowired
+    private PaymentGatewayClient paymentGatewayClient;
+
     @PostMapping("/checkout")
-//    public ResponseEntity<ApiResponse<CheckoutReqDto>> checkout(@RequestBody CheckoutReqDto checkoutReqDto){
     public ResponseEntity<ApiResponse<?>> checkout(@RequestBody CheckoutReqDto checkoutReqDto){
         try {
 
@@ -78,6 +89,16 @@ public class TransactionController {
         try {
             transactionService.cancelledTransaction(transactionCode);
             return  ResponseEntity.ok(new ApiResponse<>(true, "canceled transaction successfully", transactionCode));
+        }catch (RuntimeException e){
+            return ResponseEntity.ok(new ApiResponse<>(false, e.getMessage(), null));
+        }
+    }
+
+    @PostMapping("/callback")
+    public ResponseEntity<ApiResponse<String>> callback(@RequestParam Map<String, String> body){
+        try {
+           String handleCallback = transactionService.handleCallbackPayment(body);
+            return  ResponseEntity.ok(new ApiResponse<>(true, "callback successfully", handleCallback));
         }catch (RuntimeException e){
             return ResponseEntity.ok(new ApiResponse<>(false, e.getMessage(), null));
         }

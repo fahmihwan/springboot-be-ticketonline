@@ -18,6 +18,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import ticket_online.ticket_online.security.AuthTokenFilter;
+import ticket_online.ticket_online.security.JwtAuthenticationEntryPoint;
 import ticket_online.ticket_online.service.UserService;
 
 import java.util.List;
@@ -33,6 +34,9 @@ public class SecurityConfig {
     private UserService userService;
 
 
+    @Autowired
+    private JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
+
 
     @Bean
     public AuthenticationManager authManager(HttpSecurity http) throws Exception {
@@ -45,9 +49,12 @@ public class SecurityConfig {
 
     @Bean //disini untuk set Auth GUest
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception { //CORS INI YANG TERPAKAI
-        return http.cors()
+        return http
+                .exceptionHandling()
+                .authenticationEntryPoint(jwtAuthenticationEntryPoint) // Menambahkan entry point untuk handle autentikasi yang gagal / kadaluarsa
                 .and()
-//                .csrf(csrf -> csrf.disable())
+                .cors()
+                .and()
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers( //untuk set no auth
@@ -57,7 +64,8 @@ public class SecurityConfig {
                                 "/api/auth/login",
                                 "/api/event/*",
                                 "/api/event/*/events",
-                                "/api/event/*/with-category-tickets"
+                                "/api/event/*/with-category-tickets",
+                                "/api/transaction/callback"
                                 ).permitAll()
 //                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated())

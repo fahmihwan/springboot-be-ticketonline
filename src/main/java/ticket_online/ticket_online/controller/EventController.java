@@ -29,7 +29,7 @@ public class EventController {
 
     @GetMapping("/{total}/events")
     public ResponseEntity<ApiResponse<List<EventHomeResDto>>> getEventHome(@PathVariable Integer total){
-        System.out.println("ssksk");
+//        System.out.println("ssksk");
         try {
             List<EventHomeResDto> response =  eventService.getEventWithMinPrice(total);
             return ResponseEntity.ok(new ApiResponse<>(true, "Event retrieved successfully ", response));
@@ -54,7 +54,7 @@ public class EventController {
 
     @GetMapping("/{slug}")
     public ResponseEntity<ApiResponse<EventDetailResDto>> getEventDetailBySlug(@PathVariable String slug){
-        System.out.println("wkwkwkwk "+ slug );
+//        System.out.println("wkwkwkwk "+ slug );
         try {
             EventDetailResDto response = eventService.getEventBySlug(slug);
             return ResponseEntity.ok(new ApiResponse<>(true, "Event Detail retrieved", response));

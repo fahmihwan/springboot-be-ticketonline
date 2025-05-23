@@ -56,8 +56,7 @@ public class AuthServiceImpl implements AuthService {
             user.setPhoneNumber(registerReqDto.getPhoneNumber());
             user.setGender(registerReqDto.getGender());
             user.setAddress(registerReqDto.getAddress());
-
-            System.out.println(user);
+//            System.out.println(user);
             userRepository.saveAndFlush(user);
 
         }catch (RuntimeException e){

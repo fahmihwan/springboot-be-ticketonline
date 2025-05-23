@@ -57,7 +57,7 @@ public class PaymentGatewayClient {
         return responseEntity.getBody();
     }
 
-    @Async
+
     public CompletableFuture<Map<String,Object>> transactionRequest(Map<String, Object> params)  {
 
       try {

@@ -9,10 +9,11 @@ import ticket_online.ticket_online.model.Transaction;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 public interface TransactionService {
 
-    public Map<String,Object> checkout(CheckoutReqDto checkoutReqDto);
+    public CompletableFuture<Map<String,Object>> checkout(CheckoutReqDto checkoutReqDto);
 
     public List<Map<String, Object>> checkIfCurrentTransactionEventForUserExists(String slug, Long userId);
 
@@ -22,4 +23,14 @@ public interface TransactionService {
 
     public String handleCallbackPayment(Map<String, String> body);
 
+    public void finalizeTransaction(
+            Transaction transaction,
+            Map<String, Object> response,
+            Integer finalTotal_qty,
+            Integer finalTotal_price,
+            Integer expiryPeriod,
+            Long userId,
+            String merchantOrderId,
+            String transactionCode
+    );
 }

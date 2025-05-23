@@ -39,7 +39,7 @@ public class CartServiceImpl implements CartService {
                 "inner join events e on e.id  = ct.event_id \n"+
                 "where c.user_id = ? and c.is_active=true and e.slug = ? ";
         List<CartResDto> data = jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(CartResDto.class), userId,slug);
-        System.out.println(data);
+//        System.out.println(data);
         return  data;
     }
 

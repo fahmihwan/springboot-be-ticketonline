@@ -120,7 +120,6 @@ public class QueryExampleServiceImpl implements QueryExampleService {
 
 
     public User findByUserId(Long id) {
-        System.out.println(id);
         try {
             return userRepository.findById(id).orElseThrow(() -> new RuntimeException("user not found"));
         } catch (RuntimeException e) {
@@ -191,8 +190,6 @@ public class QueryExampleServiceImpl implements QueryExampleService {
     public List<Event> getEvents() {
         return eventRepository.findAll();
     }
-
-
 
     public Optional<Transaction> findAllByTransactionCode(){
 

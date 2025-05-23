@@ -65,7 +65,8 @@ public class SecurityConfig {
                                 "/api/event/*",
                                 "/api/event/*/events",
                                 "/api/event/*/with-category-tickets",
-                                "/api/transaction/callback"
+                                "/api/transaction/callback",
+                                "/api/transaction/checkout"
                                 ).permitAll()
 //                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated())

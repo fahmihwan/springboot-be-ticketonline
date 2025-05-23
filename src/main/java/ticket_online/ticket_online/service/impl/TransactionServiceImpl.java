@@ -88,7 +88,7 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public Map<String,Object> checkout(CheckoutReqDto checkoutReqDto){ //tembak ke pembayaran, untuk mendapatkan payment url
+    public CompletableFuture<Map<String,Object>> checkout(CheckoutReqDto checkoutReqDto){ //tembak ke pembayaran, untuk mendapatkan payment url
         String merchantCode = MERCHANT_CODE;
         try {
             Optional<Event> getEvent = eventRepository.findFirstBySlugAndIsActiveTrue(checkoutReqDto.getSlug());
@@ -213,7 +213,6 @@ public class TransactionServiceImpl implements TransactionService {
                 itemDetails.add(item);
             }
 
-
             Map<String, Object> params = new HashMap<>();
             params.put("merchantcode", merchantCode);
             params.put("paymentAmount", paymentAmount);
@@ -232,48 +231,43 @@ public class TransactionServiceImpl implements TransactionService {
             params.put("signature", signature);
             params.put("expiryPeriod", expiryPeriod);
 
-
-            CompletableFuture<Map<String, Object>> responseFuture = paymentGatewayClient.transactionRequest(params);
-            Optional<Transaction> getTransactionFirst =  transactionRepository.findById(transaction1.getId());
-
-            try {
-                Map<String, Object> response =  responseFuture.get();
-
+                Optional<Transaction> getTransactionFirst =  transactionRepository.findById(transaction1.getId());
                 if(getTransactionFirst.isPresent()){
-                    Transaction updateTransaction = getTransactionFirst.get();
-                    updateTransaction.setTotalQty(total_qty);
-                    updateTransaction.setTotalPrice(total_price);
+                    int finalTotal_qty = total_qty;
+                    int finalTotal_price = total_price;
 
-                    updateTransaction.setPgMerchantCode((String) response.get("merchantCode")) ;
-                    updateTransaction.setPgPaymentReference((String) response.get("reference"));
-                    updateTransaction.setPgPaymentUrl((String) response.get("paymentUrl"));
-                    updateTransaction.setPgVaNumber((String) response.get("vaNumber"));
-                    updateTransaction.setPgAmount(Integer.parseInt(response.get("amount").toString()));
-                    updateTransaction.setPgStatusCode((String) response.get("statusCode"));
-                    if(Objects.equals((String) response.get("statusCode"), "00")){
-                        updateTransaction.setTransactionStatus(ETransactionStatus.valueOf("PENDING"));
-                    }
-                    updateTransaction.setPgStatusMessage((String) response.get("ststatusMessage"));
-                    updateTransaction.setExpiryPeriod(expiryPeriod);
-                    updateTransaction.setUserId(checkoutReqDto.getUserId());
+                   return   paymentGatewayClient.transactionRequest(params).thenApply(response -> {
+                        Transaction updateTransaction = getTransactionFirst.get();
+                        updateTransaction.setTotalQty(finalTotal_qty);
+                        updateTransaction.setTotalPrice(finalTotal_price);
 
-                    updateTransaction.setPgMerchantOrderId(merchantOrderId);
-                    updateTransaction.setPgAmount(paymentAmount);
-                    response.put("transaction_code", transactionCode);
-                    transactionRepository.save(updateTransaction);
-                    cartRepository.deleteByUserId(checkoutReqDto.getUserId());
-                    return response;
+                        updateTransaction.setPgMerchantCode((String) response.get("merchantCode")) ;
+                        updateTransaction.setPgPaymentReference((String) response.get("reference"));
+                        updateTransaction.setPgPaymentUrl((String) response.get("paymentUrl"));
+                        updateTransaction.setPgVaNumber((String) response.get("vaNumber"));
+                        updateTransaction.setPgAmount(Integer.parseInt(response.get("amount").toString()));
+                        updateTransaction.setPgStatusCode((String) response.get("statusCode"));
+                        if(Objects.equals((String) response.get("statusCode"), "00")){
+                            updateTransaction.setTransactionStatus(ETransactionStatus.valueOf("PENDING"));
+                        }
+                        updateTransaction.setPgStatusMessage((String) response.get("ststatusMessage"));
+                        updateTransaction.setExpiryPeriod(expiryPeriod);
+                        updateTransaction.setUserId(checkoutReqDto.getUserId());
+
+                        updateTransaction.setPgMerchantOrderId(merchantOrderId);
+                        response.put("transaction_code", transactionCode);
+                        transactionRepository.save(updateTransaction);
+                        cartRepository.deleteByUserId(checkoutReqDto.getUserId());
+                        return  response;
+                    }).exceptionally(ex -> {
+                        throw new RuntimeException("Gagal memproses transaksi pembayaran", ex);
+                     });
                 }else{
+
                     throw new RuntimeException("transaction not found");
                 }
-
-            }catch (Exception e){
-                throw new RuntimeException("Payment failed", e);
-            }
-
-
-
         }catch (RuntimeException e) {
+            System.out.println(e.getMessage());
             throw new RuntimeException(e.getMessage(),e);
         }
     }
@@ -332,6 +326,41 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     public String handleCallbackPayment(Map<String, String> body){
        return paymentGatewayClient.handleCallbackPayament(body);
+    }
+
+
+    @Transactional
+    public void finalizeTransaction(
+            Transaction transaction,
+            Map<String, Object> response,
+            Integer finalTotal_qty,
+            Integer finalTotal_price,
+            Integer expiryPeriod,
+            Long userId,
+            String merchantOrderId,
+            String transactionCode
+    ) {
+        transaction.setTotalQty(finalTotal_qty);
+        transaction.setTotalPrice(finalTotal_price);
+        transaction.setPgMerchantCode((String) response.get("merchantCode"));
+        transaction.setPgPaymentReference((String) response.get("reference"));
+        transaction.setPgPaymentUrl((String) response.get("paymentUrl"));
+        transaction.setPgVaNumber((String) response.get("vaNumber"));
+        transaction.setPgAmount(Integer.parseInt(response.get("amount").toString()));
+        transaction.setPgStatusCode((String) response.get("statusCode"));
+
+        if ("00".equals(response.get("statusCode"))) {
+            transaction.setTransactionStatus(ETransactionStatus.PENDING);
+        }
+//        response.put("transaction_code", transactionCode);
+        transaction.setPgStatusMessage((String) response.get("ststatusMessage"));
+        transaction.setExpiryPeriod(expiryPeriod);
+        transaction.setUserId(userId);
+        transaction.setPgMerchantOrderId(merchantOrderId);
+
+
+        transactionRepository.save(transaction);
+        cartRepository.deleteByUserId(userId);
     }
 
 

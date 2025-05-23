@@ -60,7 +60,7 @@ public class CategoryTicketServiceImpl implements CategoryTicketService {
             categoryTicketRepository.save(categoryTicket);
             return true;
         }catch (RuntimeException e){
-            System.out.println("Error: " + e.getMessage());
+//            System.out.println("Error: " + e.getMessage());
             return  false;
         }
     }

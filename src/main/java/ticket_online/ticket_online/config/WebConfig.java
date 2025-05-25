@@ -1,5 +1,6 @@
 package ticket_online.ticket_online.config;
 
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
@@ -23,6 +24,7 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addResourceHandler("/uploaded-images/**")
                 .addResourceLocations("file:./uploaded-images/");
     }
+
 
 
 }

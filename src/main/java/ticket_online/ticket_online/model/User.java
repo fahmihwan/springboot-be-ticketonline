@@ -9,6 +9,7 @@ import ticket_online.ticket_online.constant.EGender;
 import ticket_online.ticket_online.constant.ERole;
 
 import java.security.PrivilegedAction;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 
@@ -31,7 +32,7 @@ public class User extends BaseModel {
     private ERole role;
 
     @Column(name = "birth_date")
-    private LocalDateTime birthDate;
+    private LocalDate birthDate;
 
     @Column(name = "phone_number")
     private String phoneNumber;

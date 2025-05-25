@@ -153,7 +153,6 @@ public class TransactionController {
         System.out.println("[STEP 1] Validasi Event...");
             Optional<Event> getEvent = eventRepository.findFirstBySlugAndIsActiveTrue(checkoutReqDto.getSlug());
             if(getEvent.isEmpty()){
-//                throw new RuntimeException("event not available");
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Event not available");
             }
 
@@ -309,6 +308,10 @@ public class TransactionController {
                 return  paymentGatewayClient.transactionRequest(params).thenApply(response -> {
                     try {
 
+                        if (response == null) {
+                            throw new CompletionException(new RuntimeException("Response dari payment gateway null"));
+                        }
+
                         System.out.println("[STEP 5] Sukses panggil payment gateway, update transaksi...");
                     Transaction updateTransaction = getTransactionFirst.get();
                     transactionService.finalizeTransaction(
@@ -340,7 +343,7 @@ public class TransactionController {
 
         } catch (Exception e) {
             e.printStackTrace();  // Log ke konsol
-            System.out.println("errorsdsd");
+            System.out.println("errorsdsd" + e.getMessage());
             Map<String, Object> error = new HashMap<>();
             error.put("success", false);
             error.put("message", e.getMessage());

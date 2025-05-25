@@ -28,11 +28,14 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 
 @Slf4j
 @Component
 public class PaymentGatewayClient {
 
+    @Autowired
+    private RestTemplate restTemplate;
 
     @Autowired
     private TransactionRepository transactionRepository;
@@ -63,7 +66,6 @@ public class PaymentGatewayClient {
       try {
           String url = "https://sandbox.duitku.com/webapi/api/merchant/v2/inquiry";
 
-          RestTemplate restTemplate = new RestTemplate();
           HttpHeaders headers = new HttpHeaders();
           headers.setContentType(MediaType.APPLICATION_JSON);
           HttpEntity<Object> entity = new HttpEntity<>(params, headers);
@@ -73,8 +75,9 @@ public class PaymentGatewayClient {
           );
           return CompletableFuture.completedFuture(responseEntity.getBody());
       }catch (Exception e){
-
-          return CompletableFuture.completedFuture(null);
+          e.printStackTrace();
+//          return CompletableFuture.completedFuture(null);
+          throw new CompletionException("Gagal call Duitku", e);
       }
 
 

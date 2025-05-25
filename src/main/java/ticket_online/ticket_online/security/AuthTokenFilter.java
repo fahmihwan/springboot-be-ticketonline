@@ -13,6 +13,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import ticket_online.ticket_online.service.UserService;
@@ -41,23 +42,21 @@ public class AuthTokenFilter extends OncePerRequestFilter {
                 DecodedJWT decodedJWT = jwtUtil.decodedJWT(token);
                 String email = decodedJWT.getSubject();
                 String role = decodedJWT.getClaim("role").asString();
-//                System.out.println("Role from JWT: " + role);
+
+                UserDetails userDetails = new org.springframework.security.core.userdetails.User(email, "", List.of(new SimpleGrantedAuthority(role.toUpperCase())));
+
 
                 GrantedAuthority authority = new SimpleGrantedAuthority(role.toUpperCase());
-                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(email, null, List.of(authority));
+                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails, null, List.of(authority));
 
-//                System.out.println("Granted Authority: " + authority);
+
                 SecurityContextHolder.getContext().setAuthentication(authentication);
-//                System.out.println("Authorities in context: " + SecurityContextHolder.getContext().getAuthentication().getAuthorities());
 
             } catch (TokenExpiredException e) {
-//                log.warn("JWT token expired: {}", e.getMessage());
                 throw new RuntimeException(e.getMessage(), e);
             } catch (JWTVerificationException e) {
-//                log.warn("JWT verification failed: {}", e.getMessage());
                 throw new RuntimeException(e.getMessage(), e);
             } catch (Exception e) {
-//                log.error("Unexpected error while verifying token: {}", e.getMessage());
                 throw new RuntimeException(e.getMessage(), e);
             }
         }

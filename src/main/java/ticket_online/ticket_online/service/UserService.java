@@ -13,5 +13,5 @@ public interface UserService extends UserDetailsService {
 
     public User findByUserId(Long userId);
 
-
+    public User updateUser(Long id, User user);
 }

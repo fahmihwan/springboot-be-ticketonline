@@ -3,6 +3,7 @@ package ticket_online.ticket_online.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import ticket_online.ticket_online.dto.ApiResponse;
 import ticket_online.ticket_online.dto.event.EventHomeResDto;
@@ -26,8 +27,20 @@ public class UserController {
         }catch (RuntimeException e){
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse<>(false, e.getMessage(), null));
         }
-
     }
+
+    @PreAuthorize("hasAnyRole('ADMIN','USER')")
+    @PutMapping("/{id}")
+    public ResponseEntity<ApiResponse<User>> updateUserProfile(@PathVariable Long id, @RequestBody User user){
+        try {
+            User response =  userService.updateUser(id, user);
+            return ResponseEntity.ok(new ApiResponse<User>(true, "user is updated ", response));
+        }catch (RuntimeException e){
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse<>(false, e.getMessage(), null));
+        }
+    }
+
+
 
 //    @PostMapping
 //    public ApiResponse<User> createUser(@RequestBody User user){

@@ -36,7 +36,6 @@ public class JwtUtil {
                     .sign(Algorithm.HMAC256(JWTSECRET));
 
         } catch (JWTCreationException e){
-//            log.error("generate token : {}",e.getMessage());
             throw new RuntimeException(e.getMessage(), e);
         }
     }
@@ -45,7 +44,6 @@ public class JwtUtil {
     public DecodedJWT decodedJWT(String token){
         Algorithm algorithm = Algorithm.HMAC256(JWTSECRET);
         JWTVerifier verifier = JWT.require(algorithm).build();
-//        System.out.println(verifier);
         return  verifier.verify(token);
     }
 

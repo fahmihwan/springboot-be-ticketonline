@@ -46,38 +46,38 @@ public class JwtUtil {
         JWTVerifier verifier = JWT.require(algorithm).build();
         return  verifier.verify(token);
     }
-
-    public String verifyToken(String token){
-        try{
-            JWTVerifier verifier = JWT.require(Algorithm.HMAC256(JWTSECRET)).build();
-            DecodedJWT jwt = verifier.verify(token);
-            return jwt.getSubject(); // isinya email
-        } catch (JWTVerificationException e){
-//            log.error("Error Verifying token : {}",e.getMessage());
-            throw new RuntimeException(e.getMessage(), e);
-
-        }
-    }
-
-
-    public Map<String, String> getUserInfoByToken(String token){
-        try{
-            Algorithm algorithm = Algorithm.HMAC256(JWTSECRET);
-            JWTVerifier verifier = JWT.require(algorithm).build();
-            DecodedJWT decodedJWT = verifier.verify(token);
-
-            Map<String,String> userInfo = new HashMap<>();
-//            userInfo.put("UserId", decodedJWT.getSubject());
-//            userInfo.put("role", decodedJWT.getClaim("role").asString());
-
-            return userInfo;
-        }catch (JWTVerificationException e) {
-//            log.error("Error getUserInfoByToken : {}",e.getMessage());
-            throw new RuntimeException(e.getMessage(), e);
-
-        } catch (Exception e) {
-//            log.error("Error getUserInfoByToken : {}",e.getMessage());
-            throw new RuntimeException(e.getMessage(), e);
-        }
-    }
+//
+//    public String verifyToken(String token){
+//        try{
+//            JWTVerifier verifier = JWT.require(Algorithm.HMAC256(JWTSECRET)).build();
+//            DecodedJWT jwt = verifier.verify(token);
+//            return jwt.getSubject(); // isinya email
+//        } catch (JWTVerificationException e){
+////            log.error("Error Verifying token : {}",e.getMessage());
+//            throw new RuntimeException(e.getMessage(), e);
+//
+//        }
+//    }
+//
+//
+//    public Map<String, String> getUserInfoByToken(String token){
+//        try{
+//            Algorithm algorithm = Algorithm.HMAC256(JWTSECRET);
+//            JWTVerifier verifier = JWT.require(algorithm).build();
+//            DecodedJWT decodedJWT = verifier.verify(token);
+//
+//            Map<String,String> userInfo = new HashMap<>();
+////            userInfo.put("UserId", decodedJWT.getSubject());
+////            userInfo.put("role", decodedJWT.getClaim("role").asString());
+//
+//            return userInfo;
+//        }catch (JWTVerificationException e) {
+////            log.error("Error getUserInfoByToken : {}",e.getMessage());
+//            throw new RuntimeException(e.getMessage(), e);
+//
+//        } catch (Exception e) {
+////            log.error("Error getUserInfoByToken : {}",e.getMessage());
+//            throw new RuntimeException(e.getMessage(), e);
+//        }
+//    }
 }

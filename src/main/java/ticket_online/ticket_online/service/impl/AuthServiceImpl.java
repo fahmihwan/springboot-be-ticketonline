@@ -67,6 +67,7 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public LoginResDto login(LoginReqDto loginReqDto){
 
+        System.out.println(loginReqDto);
         validationUtil.validate(loginReqDto);
         try {
             Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginReqDto.getEmail(), loginReqDto.getPassword()));

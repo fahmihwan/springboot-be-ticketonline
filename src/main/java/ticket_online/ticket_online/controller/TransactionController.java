@@ -308,7 +308,7 @@ public class TransactionController {
                 return  paymentGatewayClient.transactionRequest(params).thenApply(response -> {
                     try {
 
-                        if (response == null) {
+                        if (response == null) { //## FIX LOAD DATA NULL FRONTEND
                             throw new CompletionException(new RuntimeException("Response dari payment gateway null"));
                         }
 

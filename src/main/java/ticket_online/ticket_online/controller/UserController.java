@@ -7,6 +7,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import ticket_online.ticket_online.dto.ApiResponse;
 import ticket_online.ticket_online.dto.event.EventHomeResDto;
+import ticket_online.ticket_online.model.Checker;
 import ticket_online.ticket_online.model.User;
 import ticket_online.ticket_online.service.UserService;
 
@@ -18,6 +19,19 @@ public class UserController {
 
     @Autowired(required = true)
     private UserService userService;
+
+
+//    @GetMapping("/{id}")
+//    public ResponseEntity<ApiResponse<User>> findUserById(@PathVariable Long id){
+//        try {
+//            User response =  userService.findByUserId(id);
+//            return ResponseEntity.ok(new ApiResponse<User>(true, "user retrived ", response));
+//        }catch (RuntimeException e){
+//            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse<>(false, e.getMessage(), null));
+//        }
+//    }
+
+
 
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<User>> findUserById(@PathVariable Long id){

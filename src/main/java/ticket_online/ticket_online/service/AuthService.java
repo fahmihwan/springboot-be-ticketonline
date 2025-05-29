@@ -6,7 +6,7 @@ import ticket_online.ticket_online.dto.auth.LoginResDto;
 import ticket_online.ticket_online.dto.auth.RegisterReqDto;
 
 public interface AuthService {
-    void register(RegisterReqDto registerReqDto);
+    Long register(RegisterReqDto registerReqDto);
 
     public LoginResDto login(LoginReqDto loginReqDto);
 

@@ -40,7 +40,7 @@ public class AuthServiceImpl implements AuthService {
     private JwtUtil jwtUtil;
 
     @Override
-    public void register(RegisterReqDto registerReqDto){
+    public Long register(RegisterReqDto registerReqDto){
         try {
             if(userRepository.findFirstByEmail(registerReqDto.getEmail()).isPresent()){
                 throw new RuntimeException("email atau password sudah terdaftar");
@@ -56,8 +56,8 @@ public class AuthServiceImpl implements AuthService {
             user.setPhoneNumber(registerReqDto.getPhoneNumber());
             user.setGender(registerReqDto.getGender());
             user.setAddress(registerReqDto.getAddress());
-//            System.out.println(user);
-            userRepository.saveAndFlush(user);
+            User savedUser = userRepository.saveAndFlush(user);
+            return  savedUser.getId();
 
         }catch (RuntimeException e){
             throw new RuntimeException(e.getMessage(), e);

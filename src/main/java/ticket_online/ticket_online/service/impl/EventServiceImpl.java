@@ -14,8 +14,10 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import ticket_online.ticket_online.dto.ApiResponse;
+import ticket_online.ticket_online.dto.checker.CheckerListEventDto;
 import ticket_online.ticket_online.dto.event.EventDetailResDto;
 import ticket_online.ticket_online.dto.event.EventHomeResDto;
+import ticket_online.ticket_online.dto.event.EventLineUpResDto;
 import ticket_online.ticket_online.dto.event.EventReqDto;
 import ticket_online.ticket_online.model.CategoryTicket;
 import ticket_online.ticket_online.model.Event;
@@ -84,8 +86,6 @@ public class EventServiceImpl implements EventService {
             List<EventHomeResDto> eventHomeResDtoList = new ArrayList<>();
 
             for (Object[] row : results) {
-//                    log.info("Row data: {}", Arrays.toString(row));
-
                 // Mendapatkan URL gambar secara dinamis menggunakan ServletUriComponentsBuilder
                String imageUrl = GenerateUtil.generateImgUrl((String) row[2]);
 
@@ -148,17 +148,26 @@ public class EventServiceImpl implements EventService {
     }
 
 
-    public Page<Event> getEventPagination(int page, int size){
+    public Page<EventLineUpResDto> getEventPagination(int page, int size){
         try {
+
             Pageable pageable = PageRequest.of(page,size);
             Page<Event> response = eventRepository.findByIsActiveTrueOrderByCreatedAtDesc(pageable);
-            response.getContent().forEach(event -> {
-                event.setImage(GenerateUtil.generateImgUrl(event.getImage()));
-                event.setCategory_tickets(event.getCategory_tickets().stream().filter(CategoryTicket::getIsActive).collect(Collectors.toList()));
-                event.setListLineUps(event.getListLineUps().stream().filter(LineUp::getIsActive).collect(Collectors.toList()));
-            });
 
-            return response;
+            Page<EventLineUpResDto> eventLineUpResDtos = response.map(event -> EventLineUpResDto.builder()
+                            .id(event.getId())
+                            .eventTitle(event.getEvent_title())
+                            .venue(event.getVenue())
+                    .image(GenerateUtil.generateImgUrl(event.getImage()))
+                    .schedule(event.getSchedule())
+                    .description(event.getDescription())
+                    .createdAt(event.getCreatedAt())
+                    .slug(event.getSlug())
+                            .lineUpList(event.getListLineUps())
+                    .build()
+            );
+
+            return eventLineUpResDtos;
         } catch (RuntimeException e) {
             throw new RuntimeException(e.getMessage(), e);
         }

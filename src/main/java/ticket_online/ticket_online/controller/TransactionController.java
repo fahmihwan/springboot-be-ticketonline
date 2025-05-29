@@ -146,6 +146,7 @@ public class TransactionController {
 //        return CompletableFuture.completedFuture(ResponseEntity.ok(params));
 //        }
 
+    @Transactional(rollbackFor = Exception.class)
     @PostMapping("/checkout")
     public  CompletableFuture<ResponseEntity<Map<String, Object>>> checkout(@RequestBody CheckoutReqDto checkoutReqDto){
         String merchantCode = MERCHANT_CODE;

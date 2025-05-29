@@ -42,7 +42,7 @@ public class AuthTokenFilter extends OncePerRequestFilter {
                 DecodedJWT decodedJWT = jwtUtil.decodedJWT(token);
                 String email = decodedJWT.getSubject();
                 String role = decodedJWT.getClaim("role").asString();
-
+                System.out.println(role + " wkkw");
                 UserDetails userDetails = new org.springframework.security.core.userdetails.User(email, "", List.of(new SimpleGrantedAuthority(role.toUpperCase())));
 
 

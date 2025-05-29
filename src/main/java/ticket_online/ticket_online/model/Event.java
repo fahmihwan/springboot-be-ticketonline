@@ -41,6 +41,10 @@ public class Event extends BaseModel{
     @OneToMany()
     @JoinColumn(name = "event_id")
     private List<LineUp> listLineUps = new ArrayList<>();
+
+    @OneToMany()
+    @JoinColumn(name = "event_id")
+    private List<Checker> checkers = new ArrayList<>();
 }
 
 

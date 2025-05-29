@@ -12,6 +12,7 @@ import org.springframework.web.multipart.MultipartFile;
 import ticket_online.ticket_online.dto.ApiResponse;
 import ticket_online.ticket_online.dto.event.EventDetailResDto;
 import ticket_online.ticket_online.dto.event.EventHomeResDto;
+import ticket_online.ticket_online.dto.event.EventLineUpResDto;
 import ticket_online.ticket_online.dto.event.EventReqDto;
 import ticket_online.ticket_online.model.Event;
 import ticket_online.ticket_online.service.EventService;
@@ -41,11 +42,11 @@ public class EventController {
 
     @PreAuthorize("hasAnyRole('ADMIN','USER')")
     @GetMapping("/admin/pagination")
-    public ResponseEntity<ApiResponse<Page<Event>>> getEventAdmin(@RequestParam(value = "page", defaultValue = "0") int page,
-                                                                  @RequestParam(value = "size",defaultValue = "5") int size){
+    public ResponseEntity<ApiResponse<Page<EventLineUpResDto>>> getEventAdmin(@RequestParam(value = "page", defaultValue = "0") int page,
+                                                                              @RequestParam(value = "size",defaultValue = "5") int size){
 
         try {
-            Page<Event> response = eventService.getEventPagination(page, size);
+            Page<EventLineUpResDto> response = eventService.getEventPagination(page, size);
             return ResponseEntity.ok(new ApiResponse<>(true, "Event retrieved successfully", response));
         }catch (RuntimeException e){
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse<>(false, e.getMessage(), null));

@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 import ticket_online.ticket_online.model.CategoryTicket;
 import ticket_online.ticket_online.model.Event;
+import ticket_online.ticket_online.model.LineUp;
 
 import java.util.List;
 import java.util.Optional;
@@ -16,10 +17,9 @@ import java.util.Optional;
 @Repository
 public interface CategoryTicketRepository extends JpaRepository<CategoryTicket,Long> {
 
-
-//    Optional<Event> findFirstBySlugAndIsActiveTrue(String slug);
-
     Optional<CategoryTicket> findFirstByIdAndIsActiveTrue(Long eventId);
+
+    List<CategoryTicket> findByEventIdAndIsActiveTrue(Long id);
 
 //    int updateQuotaTicketById(Long id, Integer quotaTicket);
 

@@ -48,35 +48,3 @@ public class Event extends BaseModel{
 }
 
 
-
-
-//@Entity
-//@Table(name = "events")
-//@ToString
-//@Getter
-//@Setter
-//public class Event extends BaseModel{
-//
-//    private String event_title;
-//
-//    @Column(name = "slug")
-//    private String slug;
-//    private String image;
-//    private LocalDateTime schedule;
-//
-//    @Column(columnDefinition = "text")
-//    private String description;
-//
-//    @JsonIgnore
-//    private Long admin_id;
-//    private String venue;
-//
-//    @OneToMany()
-//    @JoinColumn(name = "event_id")
-//    private List<CategoryTicket> category_tickets = new ArrayList<CategoryTicket>();
-//
-//
-//    @OneToMany()
-//    @JoinColumn(name = "event_id")
-//    private List<LineUp> listLineUps = new ArrayList<>();
-//}

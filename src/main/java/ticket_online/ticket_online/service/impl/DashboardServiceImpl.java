@@ -4,13 +4,19 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
+import ticket_online.ticket_online.dto.checker.ListCheckerResDto;
+import ticket_online.ticket_online.dto.event.EventDetailResDto;
+import ticket_online.ticket_online.dto.event.EventResDto;
 import ticket_online.ticket_online.model.Event;
 import ticket_online.ticket_online.repository.EventRepository;
 import ticket_online.ticket_online.service.DashboardService;
+import ticket_online.ticket_online.util.GenerateUtil;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -45,9 +51,23 @@ public class DashboardServiceImpl implements DashboardService {
     }
 
     @Override
-    public List<Event> getFiveNewEvent(){
+    public List<EventResDto> getFiveNewEvent(){
         try {
-            return  eventRepository.findTop5ByIsActiveTrueOrderByCreatedAtDesc();
+            List<Event> events = eventRepository.findTop5ByIsActiveTrueOrderByCreatedAtDesc();
+
+            return events.stream()
+                    .map(event -> EventResDto.builder()
+                            .id(event.getId())
+                            .eventTitle(event.getEvent_title())
+                            .slug(event.getSlug())
+                            .venue(event.getVenue())
+                            .image(GenerateUtil.generateImgUrl(event.getImage()))
+                            .schedule(event.getSchedule())
+                            .description(event.getDescription())
+                            .createdAt(event.getCreatedAt())
+                            .build()
+            ).collect(Collectors.toList());
+
         }catch (RuntimeException e){
             throw new RuntimeException(e.getMessage());
 

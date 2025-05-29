@@ -28,6 +28,7 @@ import ticket_online.ticket_online.service.EventService;
 import ticket_online.ticket_online.util.ConvertUtil;
 import ticket_online.ticket_online.util.GenerateUtil;
 
+import javax.sound.sampled.Line;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -113,6 +114,7 @@ public class EventServiceImpl implements EventService {
             EventDetailResDto eventDetailResDto = new EventDetailResDto();
 
             Object[] eventObj = (Object[]) eventRepository.findEventsWithMinPriceBySlug(slug);
+                eventDetailResDto.setId((Long) eventObj[0]);
                 eventDetailResDto.setEventTitle((String) eventObj[1]);
                 eventDetailResDto.setImage(GenerateUtil.generateImgUrl((String) eventObj[2]));
                 eventDetailResDto.setVenue((String) eventObj[3]);
@@ -163,7 +165,9 @@ public class EventServiceImpl implements EventService {
                     .description(event.getDescription())
                     .createdAt(event.getCreatedAt())
                     .slug(event.getSlug())
-                            .lineUpList(event.getListLineUps())
+                            .lineUpList(
+                                    event.getListLineUps().stream().filter(e-> e.getIsActive() == true).collect(Collectors.toList())
+                        )
                     .build()
             );
 
@@ -216,6 +220,7 @@ public class EventServiceImpl implements EventService {
                 Files.write(path, image.getBytes());
                 event.setImage(uniqueFilename);
             }
+            System.out.println("iitt" + event);
             eventRepository.save(event);
             return event;
         }catch (RuntimeException | IOException e){

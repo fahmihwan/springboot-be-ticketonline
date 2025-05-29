@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import ticket_online.ticket_online.dto.ApiResponse;
 import ticket_online.ticket_online.dto.cart.CartResDto;
+import ticket_online.ticket_online.dto.event.EventResDto;
 import ticket_online.ticket_online.model.Event;
 import ticket_online.ticket_online.service.DashboardService;
 
@@ -38,9 +39,9 @@ public class DashboardController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/get-five-new-event")
-    public ResponseEntity<ApiResponse<List<Event>>> getFiveNewEvent(){
+    public ResponseEntity<ApiResponse<List<EventResDto>>> getFiveNewEvent(){
         try {
-            List<Event> data = dashboardService.getFiveNewEvent();
+            List<EventResDto> data = dashboardService.getFiveNewEvent();
             return  ResponseEntity.ok(new ApiResponse<>(true, "five new event data retrieved", data));
         }catch (RuntimeException e){
             return  ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse<>(false, e.getMessage(), null));

@@ -8,6 +8,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import ticket_online.ticket_online.dto.ApiResponse;
 import ticket_online.ticket_online.dto.categoryTicket.CategoryTicketReqDto;
+import ticket_online.ticket_online.dto.categoryTicket.CategoryTicketResDto;
 import ticket_online.ticket_online.dto.event.EventHomeResDto;
 import ticket_online.ticket_online.dto.event.EventLineUpResDto;
 import ticket_online.ticket_online.dto.event.EventTicketResDto;
@@ -18,7 +19,7 @@ import ticket_online.ticket_online.service.EventService;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/cetegory-ticket")
+    @RequestMapping("/api/cetegory-ticket")
 public class CategoryTicketController {
 
     @Autowired
@@ -27,6 +28,15 @@ public class CategoryTicketController {
     @Autowired
     private EventService eventService;
 
+    @GetMapping("/{slug}")
+    public ResponseEntity<ApiResponse<List<CategoryTicketResDto>>> getListCategoryTicketFromSlug(@PathVariable String slug){
+        try {
+            List<CategoryTicketResDto> response = categoryTicketService.getListCategoryTicketFromSlug(slug);
+            return ResponseEntity.ok(new ApiResponse<>(true, "Event retrieved successfully", response));
+        }catch (RuntimeException e){
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse<>(false, e.getMessage(), null));
+        }
+    }
 
 
     @PreAuthorize("hasAnyRole('ADMIN','USER')")

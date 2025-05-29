@@ -11,6 +11,7 @@ import ticket_online.ticket_online.dto.ApiResponse;
 import ticket_online.ticket_online.dto.auth.RegisterReqDto;
 import ticket_online.ticket_online.dto.cart.CartResDto;
 import ticket_online.ticket_online.dto.checker.CheckerListEventDto;
+import ticket_online.ticket_online.dto.checker.ListCheckerResDto;
 import ticket_online.ticket_online.model.Checker;
 import ticket_online.ticket_online.model.Event;
 import ticket_online.ticket_online.model.User;
@@ -41,10 +42,10 @@ public class CheckerController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/{slug}/get-list-checker")
-    public ResponseEntity<ApiResponse<List<Checker>>> getListChecker(@PathVariable String slug){
+    public ResponseEntity<ApiResponse<List<ListCheckerResDto>>> getListChecker(@PathVariable String slug){
         try {
-            List<Checker> checkers = checkerService.getListChecker(slug);
-            return ResponseEntity.ok(new ApiResponse<List<Checker>>(true, "checker list retrived ", checkers));
+            List<ListCheckerResDto> checkers = checkerService.getListChecker(slug);
+            return ResponseEntity.ok(new ApiResponse<List<ListCheckerResDto>>(true, "checker list retrived ", checkers));
         }catch (RuntimeException e){
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse<>(false, e.getMessage(), null));
         }
@@ -53,9 +54,9 @@ public class CheckerController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/{slug}")
-    public ResponseEntity<ApiResponse<Checker>> storeChecker(@RequestBody RegisterReqDto registerReqDto, @PathVariable String slug){
+    public ResponseEntity<ApiResponse<ListCheckerResDto>> storeChecker(@RequestBody RegisterReqDto registerReqDto, @PathVariable String slug){
         try {
-            Checker checker = checkerService.storeChecker(registerReqDto, slug);
+            ListCheckerResDto checker = checkerService.storeChecker(registerReqDto, slug);
             return  ResponseEntity.ok(new ApiResponse<>(true, "list cart user", checker));
 
         }catch (RuntimeException e){

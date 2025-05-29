@@ -18,6 +18,7 @@ import ticket_online.ticket_online.constant.ERole;
 import ticket_online.ticket_online.dto.ApiResponse;
 import ticket_online.ticket_online.dto.auth.RegisterReqDto;
 import ticket_online.ticket_online.dto.checker.CheckerListEventDto;
+import ticket_online.ticket_online.dto.checker.ListCheckerResDto;
 import ticket_online.ticket_online.dto.transaction.CheckoutReqDto;
 import ticket_online.ticket_online.model.*;
 import ticket_online.ticket_online.repository.CheckerRepository;
@@ -58,6 +59,7 @@ public class CheckerServiceImpl implements CheckerService {
 
             Page<Event> response = eventRepository.findByIsActiveTrueOrderByCreatedAtDesc(pageable);
 
+            System.out.println(response);
             Page<CheckerListEventDto> checkerListEventDtos = response.map(event -> CheckerListEventDto.builder()
                     .eventTitle(event.getEvent_title())
                     .venue(event.getVenue())
@@ -66,7 +68,9 @@ public class CheckerServiceImpl implements CheckerService {
                     .description(event.getDescription())
                     .createdAt(event.getCreatedAt())
                     .slug(event.getSlug())
-                    .totalChecker(event.getCheckers().size())
+                    .totalChecker(
+                            event.getCheckers().stream().filter(checker -> checker.getIsActive() == true).toList().size()
+                    )
                     .build()
             );
 
@@ -78,10 +82,24 @@ public class CheckerServiceImpl implements CheckerService {
 
 
     @Override
-    public List<Checker> getListChecker(String slug){
+    public List<ListCheckerResDto> getListChecker(String slug){
             try {
                List<Checker> checkers = checkerRepository.findByIsActiveTrueAndEventId_Slug(slug);
-                return  checkers;
+
+
+                List<ListCheckerResDto> listCheckerResDto = checkers.stream()
+                        .map(checker -> ListCheckerResDto.builder()
+                                .id(checker.getId())
+                                .fullName(checker.getUserId().getFullName())
+                                .email(checker.getUserId().getEmail())
+                                .birthDate(checker.getUserId().getBirthDate())
+                                .gender(checker.getUserId().getGender())
+                                .phoneNumber(checker.getUserId().getPhoneNumber())
+                                .address(checker.getUserId().getAddress())
+                                .build())
+                        .collect(Collectors.toList());
+
+                return  listCheckerResDto;
             }catch (RuntimeException e){
                 throw new RuntimeException(e.getMessage(), e);
             }
@@ -89,7 +107,7 @@ public class CheckerServiceImpl implements CheckerService {
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public Checker storeChecker(RegisterReqDto registerReqDto, String slug){
+    public ListCheckerResDto storeChecker(RegisterReqDto registerReqDto, String slug){
 
         try {
             Event event = eventRepository.findFirstBySlugAndIsActiveTrue(slug).orElseThrow(() -> new RuntimeException("Event not found"));
@@ -111,7 +129,20 @@ public class CheckerServiceImpl implements CheckerService {
             checker1.setUserId(user);
             Checker checker2 = checkerRepository.save(checker1);
 
-            return checker2;
+//            Page<CheckerListEventDto> checkerListEventDtos = response.map(event -> CheckerListEventDto.builder()
+
+            return ListCheckerResDto.builder()
+                    .id(checker2.getId())
+                    .fullName(checker2.getUserId().getFullName())
+                    .email(checker2.getUserId().getEmail())
+                    .birthDate(checker2.getUserId().getBirthDate())
+                    .gender(checker2.getUserId().getGender())
+                    .phoneNumber(checker2.getUserId().getPhoneNumber())
+                    .address(checker2.getUserId().getAddress())
+                    .build();
+
+
+
         }catch (RuntimeException e){
             throw new RuntimeException(e.getMessage(), e);
         }

@@ -6,10 +6,13 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import ticket_online.ticket_online.dto.categoryTicket.CategoryTicketReqDto;
+import ticket_online.ticket_online.dto.categoryTicket.CategoryTicketResDto;
 import ticket_online.ticket_online.dto.event.EventLineUpResDto;
 import ticket_online.ticket_online.dto.event.EventTicketResDto;
+import ticket_online.ticket_online.dto.lineUp.LineUpResDto;
 import ticket_online.ticket_online.model.CategoryTicket;
 import ticket_online.ticket_online.model.Event;
+import ticket_online.ticket_online.model.LineUp;
 import ticket_online.ticket_online.repository.CategoryTicketRepository;
 
 import ticket_online.ticket_online.repository.EventRepository;
@@ -19,6 +22,7 @@ import ticket_online.ticket_online.util.GenerateUtil;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class CategoryTicketServiceImpl implements CategoryTicketService {
@@ -29,6 +33,30 @@ public class CategoryTicketServiceImpl implements CategoryTicketService {
     @Autowired
     private EventRepository eventRepository;
 
+    @Override
+    public List<CategoryTicketResDto> getListCategoryTicketFromSlug(String slug){
+            try {
+            Optional<Event>  event = eventRepository.findFirstBySlugAndIsActiveTrue(slug);
+            if(event.isEmpty()){
+                throw new RuntimeException("event is not exists");
+            }
+
+
+            List<CategoryTicket> categoryTickets = categoryTicketRepository.findByEventIdAndIsActiveTrue(event.get().getId());
+            return categoryTickets.stream().map(ticket -> CategoryTicketResDto.builder()
+                    .id(ticket.getId())
+                    .eventId(ticket.getEventId())
+                    .categoryName(ticket.getCategoryName())
+                    .price(ticket.getPrice())
+                    .quotaTicket(ticket.getQuotaTicket())
+                    .description(ticket.getDescription())
+                    .build()
+            ).collect(Collectors.toList());
+        }catch (RuntimeException e){
+            throw new RuntimeException(e.getMessage(),e);
+        }
+
+    }
 
     @Override
     public Page<EventTicketResDto> getEventTicketPagination(int page, int size){
@@ -47,7 +75,7 @@ public class CategoryTicketServiceImpl implements CategoryTicketService {
                             .description(event.getDescription())
                             .createdAt(event.getCreatedAt())
                             .slug(event.getSlug())
-                            .categoryTickets(event.getCategory_tickets())
+                            .categoryTickets(event.getCategory_tickets().stream().filter( ticket-> ticket.getIsActive() == true).collect(Collectors.toList()))
                             .build()
             );
             return eventTickets;

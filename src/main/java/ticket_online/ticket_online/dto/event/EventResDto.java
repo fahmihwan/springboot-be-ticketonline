@@ -5,19 +5,21 @@ package ticket_online.ticket_online.dto.event;
 import jakarta.persistence.ColumnResult;
 import jakarta.persistence.ConstructorResult;
 import jakarta.persistence.SqlResultSetMapping;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDateTime;
 
-@Setter
-@Getter
+@Data
+@SuperBuilder
+@AllArgsConstructor
 @NoArgsConstructor
+@Getter
+@Setter
 public class EventResDto {
     private Long id;
     private String eventTitle;
+    private String slug;
     private String venue;
     private String image;
     private LocalDateTime schedule;

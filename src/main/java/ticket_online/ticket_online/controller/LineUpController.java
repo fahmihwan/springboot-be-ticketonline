@@ -9,6 +9,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import ticket_online.ticket_online.dto.ApiResponse;
 import ticket_online.ticket_online.dto.event.EventHomeResDto;
+import ticket_online.ticket_online.dto.lineUp.LineUpResDto;
 import ticket_online.ticket_online.model.Event;
 import ticket_online.ticket_online.model.LineUp;
 import ticket_online.ticket_online.service.LineUpService;
@@ -27,9 +28,9 @@ public class LineUpController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/{slug}")
-    public  ResponseEntity<ApiResponse<List<LineUp>>> getAllLineUpBySlug(@PathVariable String slug){
+    public  ResponseEntity<ApiResponse<List<LineUpResDto>>> getAllLineUpBySlug(@PathVariable String slug){
         try {
-            List<LineUp> response = lineUpService.getAllLineUpBySlug(slug);
+            List<LineUpResDto> response = lineUpService.getAllLineUpBySlug(slug);
             return ResponseEntity.ok(new ApiResponse<>(true, "Line up created successfully", response));
         }catch (RuntimeException e){
             return  ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse<>(false, e.getMessage(), null));

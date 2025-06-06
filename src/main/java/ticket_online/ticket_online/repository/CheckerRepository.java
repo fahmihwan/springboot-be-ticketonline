@@ -16,6 +16,9 @@ public interface CheckerRepository extends JpaRepository<Checker,Long> {
 
     Optional<Checker> findByUserIdAndEventId(User userId, Event eventId);
 
-      List<Checker> findByIsActiveTrueAndEventId_Slug(String slug);
+    List<Checker> findByIsActiveTrueAndEventId_Slug(String slug);
 
+    List<Checker> findByUserId(User userId);
+
+    Optional<Checker> findFirstByUserId(User userId);
 }

@@ -315,7 +315,7 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     public void cancelledTransaction(String transactionCode){
         Optional<Transaction> transaction = transactionRepository.findFirstByTransactionCodeAndIsActiveTrue(transactionCode);
-        System.out.println(transaction);
+
         if(transaction.isPresent()){
             Transaction transaction1 = transaction.get();
             transaction1.setTransactionStatus(ETransactionStatus.valueOf("CANCELLED"));

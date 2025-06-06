@@ -43,7 +43,7 @@ public class AuthServiceImpl implements AuthService {
     public Long register(RegisterReqDto registerReqDto){
         try {
             if(userRepository.findFirstByEmail(registerReqDto.getEmail()).isPresent()){
-                throw new RuntimeException("email atau password sudah terdaftar");
+                throw new RuntimeException("Email Already Exists");
             }
             validationUtil.validate(registerReqDto);
 
@@ -67,10 +67,12 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public LoginResDto login(LoginReqDto loginReqDto){
 
-        System.out.println(loginReqDto);
+
         validationUtil.validate(loginReqDto);
         try {
             Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginReqDto.getEmail(), loginReqDto.getPassword()));
+            System.out.println(authentication);
+
             SecurityContextHolder.getContext().setAuthentication(authentication);
             AppUser user = (AppUser) authentication.getPrincipal();
 

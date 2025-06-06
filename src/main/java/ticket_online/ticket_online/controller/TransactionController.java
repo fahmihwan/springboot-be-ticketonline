@@ -177,6 +177,9 @@ public class TransactionController {
                 DetailTransaction detailTransaction = new DetailTransaction();
                 detailTransaction.setTransactionId(transaction1.getId());
 
+                String ticketCode = GenerateUtil.ticketCode() + String.valueOf(i);
+                detailTransaction.setTicketCode(ticketCode);
+
                 if(i == 0){
                     visitor.setFullName(participansPayload.get(i).getFull_name());
                     visitor.setEmail(participansPayload.get(i).getEmail());
@@ -397,6 +400,7 @@ public class TransactionController {
     @PutMapping("/{transactionCode}/cancel")
     public ResponseEntity<ApiResponse<String>> cancelledTransaction(@PathVariable String transactionCode){
         try {
+//            System.out.println(transactionCode);
             transactionService.cancelledTransaction(transactionCode);
             return  ResponseEntity.ok(new ApiResponse<>(true, "canceled transaction successfully", transactionCode));
         }catch (RuntimeException e){

@@ -69,6 +69,7 @@ public class Transaction extends BaseModel{
 
     @ManyToOne
     @JoinColumn(name = "event_id")
+    @ToString.Exclude
     private Event eventId;
 
     @Enumerated(EnumType.STRING)

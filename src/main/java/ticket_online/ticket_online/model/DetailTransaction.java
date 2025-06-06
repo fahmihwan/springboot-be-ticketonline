@@ -29,6 +29,18 @@ public class DetailTransaction extends BaseModel {
     @Column(name = "category_ticket_id")
     private Long categoryTicketId;
 
+    @Column(name = "ticket_code")
+    private String ticketCode;
+
+
+    @ManyToOne
+    @JoinColumn(name = "checker_id") // Penting: foreign key ke tabel checker
+    private Checker checker;
+
+
+    @Column(name = "scanned_at")
+    private LocalDateTime scannedAt;
+
 
 
 }

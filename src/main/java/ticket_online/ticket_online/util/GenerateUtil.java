@@ -56,9 +56,6 @@ public class GenerateUtil {
                     .path("/uploaded-images/" + image)  // Menambahkan path gambar
                     .toUriString();
         }
-
-
-
     }
 
     public static String generateMerchantOrderId(){
@@ -74,4 +71,12 @@ public class GenerateUtil {
         String formattedDate = "TR"+ now.format(formatter);
         return formattedDate;
     }
+
+    public static String ticketCode(){
+        LocalDateTime now = LocalDateTime.now();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyMMddHHmmss");
+        String formattedDate = "QR"+ now.format(formatter) + "TK";
+        return formattedDate;
+    }
+
 }

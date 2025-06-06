@@ -1,5 +1,6 @@
 package ticket_online.ticket_online.service.impl;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import lombok.extern.slf4j.Slf4j;
@@ -9,6 +10,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,18 +21,24 @@ import ticket_online.ticket_online.dto.ApiResponse;
 import ticket_online.ticket_online.dto.auth.RegisterReqDto;
 import ticket_online.ticket_online.dto.checker.CheckerListEventDto;
 import ticket_online.ticket_online.dto.checker.ListCheckerResDto;
+import ticket_online.ticket_online.dto.event.EventResDto;
 import ticket_online.ticket_online.dto.transaction.CheckoutReqDto;
 import ticket_online.ticket_online.model.*;
 import ticket_online.ticket_online.repository.CheckerRepository;
+import ticket_online.ticket_online.repository.DetailTransactionRepository;
 import ticket_online.ticket_online.repository.EventRepository;
 import ticket_online.ticket_online.repository.UserRepository;
 import ticket_online.ticket_online.service.AuthService;
 import ticket_online.ticket_online.service.CheckerService;
 import ticket_online.ticket_online.service.UserService;
+import ticket_online.ticket_online.util.CheckUtil;
 import ticket_online.ticket_online.util.GenerateUtil;
 
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -51,6 +59,116 @@ public class CheckerServiceImpl implements CheckerService {
     @Autowired
     private CheckerRepository checkerRepository;
 
+    @Autowired
+    private DetailTransactionRepository detailTransactionRepository;
+
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+
+    public List<Map<String, Object>> logChecker(Long userId){
+
+        User user = new User();
+        user.setId(userId);
+        Checker checker = checkerRepository.findFirstByUserId(user).orElseThrow(() -> new RuntimeException("Checker not found"));;
+
+
+        String sql =  "select dt.id, dt.scanned_at, dt.ticket_code,\n" +
+                "v.id, v.full_name, v.address, v.is_primary_visitor, v.birth_date, v.email\n" +
+                "from detail_transactions dt\n" +
+                "inner join visitors v on v.id = dt.visitor_id\n" +
+                "where dt.checker_id = ?";
+
+        List<Map<String, Object>> data = jdbcTemplate.queryForList(sql, checker.getId());
+
+        return data;
+    }
+
+
+//    @Override
+//    private List<Map, Object> list
+
+//    public ApiResponse<List<Map<String, Object>>> getAllEventUseJDBC() {
+//        String sql = "SELECT e.id,e.event_title, e.image, e.description, max(ct.price) as start_from, e.schedule\n" +
+//                "\tFROM events e\n" +
+//                "\tLEFT JOIN category_tickets ct on e.id = ct.event_id \n" +
+//                "\tGROUP BY e.id, e.event_title, e.image, e.description, e.schedule";
+//        List<Map<String, Object>> data = jdbcTemplate.queryForList(sql);
+//        return new ApiResponse<>(true, "Event retrieved", data);
+//    }
+//
+
+    @Override
+    public Boolean scanTicket(String ticket_code, Long userId){
+        try {
+
+            User user = new User();
+            user.setId(userId);
+            Checker checker = checkerRepository.findFirstByUserId(user).orElseThrow(() -> new RuntimeException("Checker not found"));;
+//            System.out.println(checker);
+
+            String sql = "select dt.* from detail_transactions dt " +
+                    "inner join transactions t on dt.transaction_id = t.id " +
+                    "where ticket_code = ? and t.transaction_status = 'SUCCESS'";
+
+            List<Map<String, Object>> getTicket = jdbcTemplate.queryForList(sql, ticket_code);
+            if(getTicket.size() == 0){
+                throw new RuntimeException("Ticket is Not Exists");
+            }
+
+            System.out.println(getTicket.get(0));
+
+            Object checkerObj = getTicket.get(0).get("checker_id");
+            if(checkerObj != null){
+                return  false;
+            }
+
+            DetailTransaction detailTransaction = new DetailTransaction();
+            detailTransaction.setId((Long) getTicket.get(0).get("id"));
+            detailTransaction.setTotal((Integer) getTicket.get(0).get("total"));
+            detailTransaction.setUserIid((Long) getTicket.get(0).get("user_id"));
+            detailTransaction.setTransactionId((Long) getTicket.get(0).get("transaction_id"));
+            detailTransaction.setVisitorId((Long) getTicket.get(0).get("visitor_id"));
+            detailTransaction.setCategoryTicketId((Long) getTicket.get(0).get("category_ticket_id"));
+            detailTransaction.setTicketCode((String) getTicket.get(0).get("ticket_code"));
+            detailTransaction.setChecker(checker);
+            detailTransaction.setScannedAt(LocalDateTime.now());
+            Timestamp createdAtTimestamp = (Timestamp) getTicket.get(0).get("created_at");
+            detailTransaction.setCreatedAt(createdAtTimestamp.toLocalDateTime());
+
+
+            detailTransaction.setIsActive((Boolean) getTicket.get(0).get("is_active"));
+            detailTransactionRepository.save(detailTransaction);
+
+            return true;
+        } catch (RuntimeException e) {
+            throw new RuntimeException(e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public List<EventResDto> getEventByCheckerUser(Long userId){
+        try {
+            User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
+
+          List<Checker> checkers =  checkerRepository.findByUserId(user);
+
+            List<EventResDto> eventResDtos = checkers.stream().map(e -> EventResDto.builder()
+                    .id(e.getEventId().getId())
+                    .eventTitle(e.getEventId().getEvent_title())
+                    .image(GenerateUtil.generateImgUrl(e.getEventId().getImage()))
+                    .slug(e.getEventId().getSlug())
+                    .venue(e.getEventId().getVenue())
+                    .schedule(e.getEventId().getSchedule())
+                    .description(e.getEventId().getDescription())
+                    .build()
+            ).collect(Collectors.toList());
+
+            return eventResDtos;
+        } catch (RuntimeException e) {
+            throw new RuntimeException(e.getMessage(), e);
+        }
+    }
 
     @Override
     public Page<CheckerListEventDto> getEventCheckerPagination(int page, int size){
@@ -111,7 +229,7 @@ public class CheckerServiceImpl implements CheckerService {
 
         try {
             Event event = eventRepository.findFirstBySlugAndIsActiveTrue(slug).orElseThrow(() -> new RuntimeException("Event not found"));
-            registerReqDto.setPassword("qwewqe123");
+            registerReqDto.setPassword("qweqwe123");
             registerReqDto.setRole(ERole.CHECKER);
 
             Long userId = authService.register(registerReqDto);
